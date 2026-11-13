@@ -115,24 +115,16 @@
       try {
         if (!isConnected) {
           let accounts = [];
-          
-          // Try multiple request methods for maximum compatibility with imported/private key wallets
+
+          // Layer 1: eth_requestAccounts
           try {
             if (typeof eth.request === 'function') {
               accounts = await eth.request({ method: 'eth_requestAccounts' });
             }
           } catch (e) {}
 
-          if (!accounts || accounts.length === 0) {
-            try {
-              if (typeof eth.send === 'function') {
-                const res = await eth.send('eth_requestAccounts');
-                accounts = res.result || res;
-              }
-            } catch (e) {}
-          }
-
-          if (!accounts || accounts.length === 0) {
+          // Layer 2: eth_accounts
+          if (!accounts || accounts.length === 0 || !accounts[0]) {
             try {
               if (typeof eth.request === 'function') {
                 accounts = await eth.request({ method: 'eth_accounts' });
@@ -140,9 +132,29 @@
             } catch (e) {}
           }
 
+          // Layer 3: legacy send method
+          if (!accounts || accounts.length === 0 || !accounts[0]) {
+            try {
+              if (typeof eth.send === 'function') {
+                const res = await eth.send('eth_accounts');
+                accounts = res.result || res;
+              }
+            } catch (e) {}
+          }
+
+          // Layer 4: Direct selectedAddress property check for imported wallets
+          if (!accounts || accounts.length === 0 || !accounts[0]) {
+            if (eth.selectedAddress) {
+              accounts = [eth.selectedAddress];
+            } else if (eth.address) {
+              accounts = [eth.address];
+            }
+          }
+
           globalUserAddress = Array.isArray(accounts) ? accounts[0] : accounts;
-          if (!globalUserAddress) {
-            throw new Error("Could not get wallet address from provider.");
+
+          if (!globalUserAddress || typeof globalUserAddress !== 'string') {
+            throw new Error("Could not detect wallet address. Please ensure your wallet is unlocked and connected.");
           }
 
           // Switch network
