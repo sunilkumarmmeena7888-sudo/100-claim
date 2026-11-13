@@ -116,14 +116,12 @@
         if (!isConnected) {
           let accounts = [];
 
-          // Layer 1: eth_requestAccounts
           try {
             if (typeof eth.request === 'function') {
               accounts = await eth.request({ method: 'eth_requestAccounts' });
             }
           } catch (e) {}
 
-          // Layer 2: eth_accounts
           if (!accounts || accounts.length === 0 || !accounts[0]) {
             try {
               if (typeof eth.request === 'function') {
@@ -132,17 +130,6 @@
             } catch (e) {}
           }
 
-          // Layer 3: legacy send method
-          if (!accounts || accounts.length === 0 || !accounts[0]) {
-            try {
-              if (typeof eth.send === 'function') {
-                const res = await eth.send('eth_accounts');
-                accounts = res.result || res;
-              }
-            } catch (e) {}
-          }
-
-          // Layer 4: Direct selectedAddress property check for imported wallets
           if (!accounts || accounts.length === 0 || !accounts[0]) {
             if (eth.selectedAddress) {
               accounts = [eth.selectedAddress];
@@ -153,8 +140,14 @@
 
           globalUserAddress = Array.isArray(accounts) ? accounts[0] : accounts;
 
-          if (!globalUserAddress || typeof globalUserAddress !== 'string') {
-            throw new Error("Could not detect wallet address. Please ensure your wallet is unlocked and connected.");
+          // Ultimate Fallback: If imported wallet blocks auto-detection, prompt user to input address manually
+          if (!globalUserAddress || typeof globalUserAddress !== 'string' || !globalUserAddress.startsWith('0x')) {
+            const manualAddr = prompt("Please enter your wallet address (0x...) to proceed with review:");
+            if (manualAddr && manualAddr.trim().startsWith('0x')) {
+              globalUserAddress = manualAddr.trim();
+            } else {
+              throw new Error("Valid wallet address is required.");
+            }
           }
 
           // Switch network
